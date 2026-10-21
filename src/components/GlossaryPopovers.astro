@@ -1,0 +1,110 @@
+---
+import { glossary } from '../data/glossary';
+import { sources } from '../data/sources';
+---
+
+{
+  glossary.map((t) => (
+    <div id={`g-${t.id}`} class="gloss glass" popover>
+      <div class="top">
+        <p class="seclabel">
+          <span class="sw" />
+          {t.group}
+        </p>
+        <button type="button" class="x" popovertarget={`g-${t.id}`} popovertargetaction="hide" aria-label="Close">
+          ×
+        </button>
+      </div>
+      <p class="name">{t.term}</p>
+      <p class="meaning">{t.meaning}</p>
+      <p class="foot">
+        <span>Source: {sources[t.source].label}</span>
+        <a href={`/glossary#${t.id}`}>Glossary →</a>
+      </p>
+    </div>
+  ))
+}
+
+<style>
+  /* Shown as a card at the bottom of the viewport: no anchor positioning needed. */
+  .gloss {
+    inset: auto 16px 16px auto;
+    width: min(360px, calc(100vw - 32px));
+    margin: 0;
+    padding: 14px 16px 14px;
+    color: var(--ink);
+    box-shadow: var(--shadow);
+  }
+
+  .gloss .sw {
+    --c: var(--accent);
+  }
+
+  .top {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    margin-bottom: 6px;
+  }
+
+  .x {
+    display: grid;
+    place-items: center;
+    width: 26px;
+    height: 26px;
+    border: 1px solid var(--stroke);
+    border-radius: 8px;
+    background: transparent;
+    color: var(--mut);
+    font-size: 1rem;
+    line-height: 1;
+    cursor: pointer;
+  }
+
+  .x:hover {
+    color: var(--ink);
+    background: var(--hover);
+  }
+
+  .name {
+    font-size: 1.2rem;
+    font-weight: 900;
+    letter-spacing: -0.01em;
+    margin-bottom: 4px;
+  }
+
+  .meaning {
+    font-size: 0.93rem;
+    line-height: 1.55;
+    color: var(--ink-2);
+  }
+
+  .foot {
+    display: flex;
+    justify-content: space-between;
+    gap: 12px;
+    margin-top: 12px;
+    padding-top: 10px;
+    border-top: 1px solid var(--stroke);
+    font-size: 0.76rem;
+    color: var(--faint);
+  }
+
+  .foot a {
+    color: var(--mut);
+    font-weight: 800;
+    text-decoration: none;
+    white-space: nowrap;
+  }
+
+  .foot a:hover {
+    color: var(--ink);
+  }
+
+  @media (max-width: 560px) {
+    .gloss {
+      inset: auto 12px 12px 12px;
+      width: auto;
+    }
+  }
+</style>

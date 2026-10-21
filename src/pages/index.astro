@@ -1,0 +1,361 @@
+---
+import Base from '../layouts/Base.astro';
+import Constellation from '../components/home/Constellation.astro';
+import PartyCards from '../components/home/PartyCards.astro';
+import { actorOrder, actors } from '../data/actors';
+import { cast } from '../data/cast';
+import { chapters } from '../data/chapters';
+
+const goals = [
+  ['What Raast is', 'and how it differs from PRISM+, the State Bank’s RTGS.'],
+  ['Who the five parties are', 'and what each one does in a bill payment.'],
+  ['Why the inquiry comes first', 'and why RSOP stores the inquiry ID and amount.'],
+  ['What pacs.008 and pacs.002 are', 'and what AUTH, NAUT, ACSP and RJCT mean.'],
+  ['Why the bill is marked paid only after ACSP', 'and why a failed bill marking never undoes a payment.'],
+  ['Why a repeated message', 'must never pay a bill twice.'],
+];
+---
+
+<Base>
+  <main>
+    <section class="hero wrap">
+      <div class="copy">
+        <p class="eyebrow">An interactive guide · learning demo</p>
+        <h1 class="display">How a bill gets paid in seconds<span class="pd">.</span></h1>
+        <p class="kicker">Sara owes her city PKR 4,350 in property tax. She pays from her bank app, and seconds later the city knows.</p>
+        <p class="lede">
+          <b>Five parties</b> and <b>32 steps</b> make that happen, across two flows: a <b>bill inquiry</b> and a <b>bill payment</b>.
+          This guide walks you through every step in plain words. <b>Tap any party</b> to meet it.
+        </p>
+        <p class="ctx">
+          Built on Raast, Pakistan’s instant payment system, and the agreed design of the Open Connect RSOP demo. The
+          biller is a mock; every name and number is fictional.
+        </p>
+        <div class="ctas">
+          <a class="btn primary" href="/basics">
+            Start with the basics
+            <svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M3 8h10M9.5 4.5 13 8l-3.5 3.5"></path></svg>
+          </a>
+          <a class="btn" href="/inquiry">Skip to the flows</a>
+          <span class="lic">About 15 minutes · 5 chapters</span>
+        </div>
+      </div>
+
+      <div class="visual">
+        <Constellation />
+        <div class="legend glass">
+          <p class="seclabel">The cast · tap to meet <span class="hint"><b>Follow</b> a party’s steps into the flows</span></p>
+          <div class="chips">
+            {
+              actorOrder.map((a) => (
+                <button type="button" class="chip" popovertarget={`party-${a}`} style={`--c: var(--c-${a})`}>
+                  <span class="sw" />
+                  <span class="nm">{actors[a].name}</span>
+                  <span class="ct mono">{cast[a].total}</span>
+                </button>
+              ))
+            }
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <section class="chapters wrap" aria-labelledby="chapters-title">
+      <div class="sec-head">
+        <p class="eyebrow">The chapters</p>
+        <h2 id="chapters-title" class="h2">Five short chapters, one story<span class="pd">.</span></h2>
+      </div>
+      <div class="grid">
+        {
+          chapters.map((c) => (
+            <a class="ch glass" href={c.href}>
+              <span class="n mono">{c.n}</span>
+              <span class="t">{c.title}</span>
+              <span class="b">{c.blurb}</span>
+              <span class="m">
+                {c.minutes} min <span aria-hidden="true">→</span>
+              </span>
+            </a>
+          ))
+        }
+        <a class="ch glass ref" href="/glossary">
+          <span class="n mono">A–Z</span>
+          <span class="t">Glossary</span>
+          <span class="b">Every term in plain words. Tap any dotted word in the guide to open its entry.</span>
+          <span class="m">Reference <span aria-hidden="true">→</span></span>
+        </a>
+      </div>
+    </section>
+
+    <section class="goals wrap" aria-labelledby="goals-title">
+      <div class="sec-head">
+        <p class="eyebrow">What you will be able to explain</p>
+        <h2 id="goals-title" class="h2">In about fifteen minutes<span class="pd">.</span></h2>
+      </div>
+      <ol>
+        {
+          goals.map(([a, b], i) => (
+            <li>
+              <span class="i mono">{String(i + 1).padStart(2, '0')}</span>
+              <p>
+                <b>{a}</b> {b}
+              </p>
+            </li>
+          ))
+        }
+      </ol>
+    </section>
+  </main>
+  <PartyCards />
+</Base>
+
+<style>
+  .hero {
+    display: grid;
+    grid-template-columns: minmax(0, 0.92fr) minmax(0, 1.08fr);
+    align-items: center;
+    gap: 22px 44px;
+    min-height: calc(100dvh - var(--header-h));
+    padding: 36px 0;
+  }
+
+  .copy {
+    display: grid;
+    gap: 14px;
+  }
+
+  .display {
+    margin: 4px 0 6px;
+    font-size: clamp(2.9rem, 6vw, 5.4rem);
+  }
+
+  .kicker {
+    max-width: 46ch;
+    font-size: 1.02rem;
+    font-weight: 800;
+    line-height: 1.5;
+  }
+
+  .ctx {
+    max-width: 56ch;
+    font-size: 0.86rem;
+    line-height: 1.55;
+    color: var(--mut);
+  }
+
+  .ctas {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: 12px 14px;
+    margin-top: 6px;
+  }
+
+  .lic {
+    font-size: 0.7rem;
+    font-weight: 800;
+    letter-spacing: 0.14em;
+    text-transform: uppercase;
+    color: var(--faint);
+  }
+
+  .visual {
+    display: grid;
+    gap: 18px;
+    padding-top: 26px;
+  }
+
+  .legend {
+    display: grid;
+    gap: 10px;
+    padding: 12px 12px 12px;
+  }
+
+  .legend .seclabel {
+    flex-wrap: wrap;
+    margin: 0 4px;
+  }
+
+  .hint {
+    margin-left: auto;
+    font-size: 0.74rem;
+    font-weight: 600;
+    letter-spacing: 0;
+    text-transform: none;
+    color: var(--faint);
+  }
+
+  .hint b {
+    color: var(--mut);
+  }
+
+  .chips {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 6px;
+  }
+
+  .chip {
+    display: inline-flex;
+    align-items: center;
+    gap: 9px;
+    padding: 7px 12px 7px 10px;
+    border: 1px solid var(--stroke);
+    border-radius: 999px;
+    background: transparent;
+    cursor: pointer;
+    transition:
+      background 0.15s,
+      border-color 0.15s;
+  }
+
+  .chip:hover {
+    background: var(--hover);
+    border-color: color-mix(in srgb, var(--c) 60%, transparent);
+  }
+
+  .chip .sw {
+    width: 10px;
+    height: 10px;
+  }
+
+  .nm {
+    font-size: 0.88rem;
+    font-weight: 800;
+  }
+
+  .ct {
+    font-size: 0.74rem;
+    color: var(--mut);
+  }
+
+  .sec-head {
+    display: grid;
+    gap: 10px;
+    margin-bottom: 26px;
+  }
+
+  .chapters,
+  .goals {
+    padding-top: 70px;
+  }
+
+  .grid {
+    display: grid;
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+    gap: 14px;
+  }
+
+  .ch {
+    display: grid;
+    grid-template-rows: auto auto 1fr auto;
+    gap: 8px;
+    min-height: 220px;
+    padding: 20px 22px;
+    text-decoration: none;
+    transition:
+      border-color 0.15s,
+      background 0.15s,
+      transform 0.15s;
+  }
+
+  .ch:hover {
+    border-color: var(--stroke-strong);
+    background: var(--hover);
+    transform: translateY(-2px);
+  }
+
+  .ch .n {
+    font-size: 0.74rem;
+    color: var(--accent);
+  }
+
+  .ch .t {
+    font-family: var(--font-serif);
+    font-size: 2rem;
+    line-height: 1.05;
+  }
+
+  .ch .b {
+    font-size: 0.92rem;
+    line-height: 1.55;
+    color: var(--ink-2);
+  }
+
+  .ch .m {
+    font-size: 0.78rem;
+    font-weight: 800;
+    color: var(--mut);
+  }
+
+  .ref .n {
+    color: var(--mut);
+  }
+
+  .goals ol {
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 0 40px;
+    padding: 0;
+    list-style: none;
+  }
+
+  .goals li {
+    display: grid;
+    grid-template-columns: 34px 1fr;
+    gap: 10px;
+    padding: 16px 0;
+    border-top: 1px solid var(--stroke);
+  }
+
+  .goals .i {
+    font-size: 0.74rem;
+    color: var(--accent);
+    padding-top: 4px;
+  }
+
+  .goals p {
+    font-size: 1rem;
+    line-height: 1.55;
+    color: var(--ink-2);
+  }
+
+  .goals b {
+    color: var(--ink);
+    font-weight: 800;
+  }
+
+  @media (max-width: 1000px) {
+    .hero {
+      grid-template-columns: 1fr;
+      min-height: 0;
+    }
+
+    .grid {
+      grid-template-columns: repeat(2, minmax(0, 1fr));
+    }
+  }
+
+  @media (max-width: 640px) {
+    .hero {
+      padding-top: 30px;
+    }
+
+    .hint {
+      margin-left: 0;
+    }
+
+    .visual {
+      padding: 8px 0 0;
+    }
+
+    .grid,
+    .goals ol {
+      grid-template-columns: 1fr;
+    }
+
+    .ch {
+      min-height: 0;
+    }
+  }
+</style>

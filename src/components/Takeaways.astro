@@ -1,0 +1,57 @@
+---
+import { rich } from '../lib/rich';
+
+interface Props {
+  items: string[];
+  title?: string;
+}
+
+const { items, title = 'Remember' } = Astro.props;
+---
+
+<section class="takeaways" aria-label={title}>
+  <p class="seclabel">{title}</p>
+  <ol>
+    {
+      items.map((t, i) => (
+        <li class="glass">
+          <span class="i mono">{String(i + 1).padStart(2, '0')}</span>
+          <p set:html={rich(t)} />
+        </li>
+      ))
+    }
+  </ol>
+</section>
+
+<style>
+  .takeaways {
+    display: grid;
+    gap: 12px;
+  }
+
+  ol {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+    gap: 12px;
+    padding: 0;
+    list-style: none;
+  }
+
+  li {
+    display: grid;
+    gap: 8px;
+    align-content: start;
+    padding: 16px 18px;
+  }
+
+  .i {
+    font-size: 0.72rem;
+    color: var(--accent);
+  }
+
+  li p {
+    font-size: 0.95rem;
+    line-height: 1.55;
+    color: var(--ink-2);
+  }
+</style>

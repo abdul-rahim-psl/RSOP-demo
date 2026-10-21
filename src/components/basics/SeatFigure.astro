@@ -1,0 +1,124 @@
+---
+import ActorIcon from '../ActorIcon.astro';
+
+const rows = [
+  {
+    title: 'An ordinary Raast payment',
+    nodes: [
+      { name: 'Payer’s bank', c: 'bank', icon: 'bank' },
+      { name: 'Raast', c: 'raast', icon: 'raast' },
+      { name: 'Payee’s bank', c: 'bank', icon: 'bank' },
+    ],
+  },
+  {
+    title: 'This demo',
+    nodes: [
+      { name: 'Demo Bank', c: 'bank', icon: 'bank' },
+      { name: 'Raast', c: 'raast', icon: 'raast' },
+      { name: 'RSOP', c: 'rsop', icon: 'rsop' },
+    ],
+  },
+] as const;
+---
+
+<figure class="seat glass">
+  {
+    rows.map((r) => (
+      <div class="srow">
+        <p class="seclabel">{r.title}</p>
+        <div class="chain">
+          {r.nodes.map((n, i) => (
+            <>
+              {i > 0 && (
+                <svg class="link" viewBox="0 0 40 12" aria-hidden="true">
+                  <path d="M2 6h33M31 2.5 35 6l-4 3.5" />
+                </svg>
+              )}
+              <div class:list={['node', { answers: i === 2 }]} style={`--c: var(--c-${n.c})`}>
+                <span class="disc">
+                  <ActorIcon actor={n.icon} size={16} />
+                </span>
+                <span class="nn">{n.name}</span>
+                {i === 2 && <span class="says">answers AUTH or NAUT</span>}
+              </div>
+            </>
+          ))}
+        </div>
+      </div>
+    ))
+  }
+  <figcaption>
+    RSOP takes the seat that the payee’s bank has in an ordinary payment. This comparison is our reading of the demo doc
+    next to Raast’s design spec (CMA TS 082 002); neither document states it in these words.
+  </figcaption>
+</figure>
+
+<style>
+  .seat {
+    display: grid;
+    gap: 18px;
+    padding: 16px 18px 18px;
+  }
+
+  .srow {
+    display: grid;
+    gap: 10px;
+  }
+
+  .chain {
+    display: flex;
+    align-items: flex-start;
+  }
+
+  .node {
+    display: grid;
+    justify-items: center;
+    gap: 4px;
+    flex: 1;
+    text-align: center;
+  }
+
+  .disc {
+    display: grid;
+    place-items: center;
+    width: 40px;
+    height: 40px;
+    border: 1.5px solid var(--c);
+    border-radius: 50%;
+    background: color-mix(in srgb, var(--c) 16%, var(--bg));
+  }
+
+  .answers .disc {
+    box-shadow:
+      0 0 0 5px color-mix(in srgb, var(--c) 18%, transparent),
+      0 0 26px color-mix(in srgb, var(--c) 50%, transparent);
+  }
+
+  .nn {
+    font-size: 0.84rem;
+    font-weight: 900;
+  }
+
+  .says {
+    font-size: 0.72rem;
+    font-weight: 700;
+    color: var(--mut);
+  }
+
+  .link {
+    flex: 0 0 auto;
+    width: 40px;
+    margin-top: 14px;
+    fill: none;
+    stroke: var(--mut);
+    stroke-width: 1.4;
+    stroke-linecap: round;
+    stroke-linejoin: round;
+  }
+
+  figcaption {
+    font-size: 0.84rem;
+    line-height: 1.55;
+    color: var(--mut);
+  }
+</style>

@@ -1,0 +1,141 @@
+---
+import type { ActorId, Block, Branch } from '../../lib/flow';
+import { rich } from '../../lib/rich';
+
+interface Props {
+  blocks: Block[];
+  lane: Record<string, number>;
+  names: Record<string, string>;
+  n: number;
+  branch?: Branch;
+  off?: boolean;
+}
+
+const { blocks, lane, names, n, branch, off = false } = Astro.props;
+
+const centre = (a: ActorId) => ((lane[a] + 0.5) * 100) / n;
+---
+
+{
+  blocks.map((b) => {
+    if (b.type === 'step') {
+      const s = b.step;
+      const internal = s.kind === 'internal';
+      const dir = lane[s.to] >= lane[s.from] ? 'right' : 'left';
+      const left = Math.min(centre(s.from), centre(s.to));
+      const width = Math.abs(centre(s.to) - centre(s.from));
+      const aria = internal
+        ? `Step ${s.n}: inside ${names[s.from]}. ${s.title}`
+        : `Step ${s.n}: ${names[s.from]} to ${names[s.to]}. ${s.title}`;
+      return (
+        <div
+          class="row"
+          data-n={s.n}
+          data-kind={s.kind}
+          data-off={off || undefined}
+          style={`--fc: var(--c-${s.from}); --tc: var(--c-${s.to})`}
+        >
+          <span class="num mono" aria-hidden="true">
+            {String(s.n).padStart(2, '0')}
+          </span>
+          <button class="hit" type="button" data-go={s.n} aria-label={aria}>
+            <span class="track" aria-hidden="true">
+              {internal ? (
+                <span class="box" style={`grid-column: ${lane[s.from] + 1}`}>
+                  {s.label}
+                </span>
+              ) : (
+                <span class="arrow" data-dir={dir} style={`--l: ${left}%; --w: ${width}%`}>
+                  <span class="label">{s.label}</span>
+                  <span class="line" />
+                  <span class="tip" />
+                  <span class="token" />
+                </span>
+              )}
+            </span>
+            <span class="m-line" aria-hidden="true">
+              <span class="chip" style={`--c: var(--c-${s.from})`}>
+                <span class="sw" />
+                {names[s.from]}
+              </span>
+              {internal ? (
+                <span class="m-in">inside</span>
+              ) : (
+                <>
+                  <svg class="m-arrow" viewBox="0 0 16 16">
+                    <path d="M2 8h11M9.5 4.5 13 8l-3.5 3.5" />
+                  </svg>
+                  <span class="chip" style={`--c: var(--c-${s.to})`}>
+                    <span class="sw" />
+                    {names[s.to]}
+                  </span>
+                </>
+              )}
+              <span class="m-label">{s.label}</span>
+            </span>
+          </button>
+          <p class="row-caption" set:html={rich(s.caption)} />
+        </div>
+      );
+    }
+
+    if (b.type === 'note') {
+      const a = Math.min(lane[b.over[0]], lane[b.over[1]]);
+      const z = Math.max(lane[b.over[0]], lane[b.over[1]]);
+      return (
+        <div class="row note-row" data-off={off || undefined}>
+          <span class="num" />
+          <span class="track">
+            <span class="box doc-note" style={`grid-column: ${a + 1} / ${z + 2}`}>
+              {b.text}
+            </span>
+          </span>
+        </div>
+      );
+    }
+
+    if (b.type === 'alt') {
+      return b.branches.map((br) => {
+        const skipped = off || (branch !== undefined && br.branch !== branch);
+        return (
+          <div class="band alt" data-branch={br.branch} data-off={skipped || undefined}>
+            <div class="band-head">
+              <span class="tag" data-tone={br.branch === 'approved' ? 'ok' : 'fail'}>
+                <span class="sw" />
+                {br.label}
+              </span>
+              {skipped && <span class="off-note">Not taken this time</span>}
+            </div>
+            <Astro.self blocks={br.blocks} lane={lane} names={names} n={n} branch={branch} off={skipped} />
+          </div>
+        );
+      });
+    }
+
+    return (
+      <div class="band par" data-off={off || undefined}>
+        <div class="band-head">
+          <span class="tag" data-tone="info">
+            <span class="sw" />
+            At the same time
+          </span>
+          <span class="off-note">Either side can hear first</span>
+          {!off && (
+            <button class="swap" type="button" data-swap aria-pressed="false">
+              <svg viewBox="0 0 16 16" aria-hidden="true">
+                <path d="M4 3v10M4 13l-2.2-2.2M4 13l2.2-2.2M12 13V3M12 3 9.8 5.2M12 3l2.2 2.2" />
+              </svg>
+              Swap order
+            </button>
+          )}
+        </div>
+        {b.lanes.map((l) => (
+          <div class="par-lane">
+            <p class="lane-tag">{l.title}</p>
+            <Astro.self blocks={l.blocks} lane={lane} names={names} n={n} branch={branch} off={off} />
+          </div>
+        ))}
+      </div>
+    );
+  })
+}

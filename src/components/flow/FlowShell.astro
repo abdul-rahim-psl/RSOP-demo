@@ -1,0 +1,234 @@
+---
+import '../../styles/flow.css';
+import type { Flow } from '../../lib/flow';
+import { emptyRecords, hasParallel, walk } from '../../lib/flow';
+import { actors } from '../../data/actors';
+import Diagram from './Diagram.astro';
+import StepDetail from './StepDetail.astro';
+import Phone from './Phone.astro';
+import { allSteps } from '../../lib/flow';
+
+interface Variant {
+  id: string;
+  label: string;
+  hint?: string;
+  tone?: 'ok' | 'fail' | 'info';
+  flow: Flow;
+  amount?: string;
+  /** What-if scenarios: the point to take away, and where the behaviour comes from. */
+  lesson?: string;
+  basis?: string;
+}
+
+interface Props {
+  variants: Variant[];
+  /** URL query parameter that selects a variant, e.g. "outcome". */
+  param?: string;
+  pickLabel?: string;
+  /** Show the doc's step numbers: true for the doc's two flows. */
+  docNumbered?: boolean;
+}
+
+const { variants, param = 'variant', pickLabel = 'Choose', docNumbered = false } = Astro.props;
+const hasPhone = variants.some((v) => v.flow.lanes.some((l) => l.actor === 'customer'));
+
+const data = variants.map((v) => {
+  const order = walk(v.flow).map((s) => s.n);
+  const swapped = hasParallel(v.flow.blocks) ? walk(v.flow, true).map((s) => s.n) : null;
+  const steps = Object.fromEntries(
+    allSteps(v.flow.blocks).map((s) => [
+      s.n,
+      {
+        from: s.from,
+        to: s.to,
+        fromName: actors[s.from].name,
+        toName: actors[s.to].name,
+        title: s.title,
+        records: s.records,
+        screen: s.screen,
+      },
+    ]),
+  );
+  return {
+    id: v.id,
+    order,
+    swapped,
+    steps,
+    initialRecords: v.flow.initialRecords ?? emptyRecords(),
+    initialScreen: v.flow.initialScreen ?? null,
+    showRecords: v.flow.showRecords ?? false,
+  };
+});
+
+const json = (o: unknown) => JSON.stringify(o).replace(/</g, '\\u003c');
+---
+
+<main class="shell" data-shell data-param={param} data-doc={docNumbered || undefined} data-phone-shell={hasPhone || undefined}>
+  <div class="stage" data-stage>
+    <div class="stage-inner">
+      <div class="intro">
+        <slot name="intro" />
+        {
+          variants.length > 1 && (
+            <div class="picker" role="group" aria-label={pickLabel}>
+              <p class="seclabel">{pickLabel} · tap to choose</p>
+              <div class="chips">
+                {variants.map((v, i) => (
+                  <button
+                    type="button"
+                    class="pick"
+                    data-pick={v.id}
+                    aria-pressed={i === 0 ? 'true' : 'false'}
+                    style={`--tone: var(--${v.tone ?? 'info'})`}
+                  >
+                    <span class="sw" style="--c: var(--tone)" />
+                    <span class="pick-label">{v.label}</span>
+                    {v.hint && <span class="pick-hint">{v.hint}</span>}
+                  </button>
+                ))}
+              </div>
+            </div>
+          )
+        }
+      </div>
+
+      <div class="stage-grid">
+        {
+          hasPhone && (
+            <aside class="phone-col" aria-label="Sara’s phone">
+              <p class="seclabel">Sara’s phone</p>
+              {variants.map((v, i) => (
+                <div class="variant-slot" data-variant={v.id} data-active={i === 0 || undefined}>
+                  <Phone initial={v.flow.initialScreen ?? 'enter-bill'} amount={v.amount} />
+                </div>
+              ))}
+            </aside>
+          )
+        }
+        <div class="diagrams">
+          {
+            variants.map((v, i) => (
+              <section class="variant-slot" data-variant={v.id} data-active={i === 0 || undefined} aria-label={`${v.flow.title}: ${v.label}`}>
+                {variants.length > 1 && <h2 class="variant-title">{v.label}</h2>}
+                <Diagram flow={v.flow} />
+              </section>
+            ))
+          }
+        </div>
+      </div>
+
+      <div class="outro">
+        <slot name="after" />
+      </div>
+    </div>
+  </div>
+
+  <aside class="card glass" data-card aria-label="Step details">
+    <div class="card-head">
+      <span class="pos" data-pos>Overview</span>
+      <span class="docn mono" data-docn></span>
+      <button type="button" class="sheet-toggle" data-act="sheet" aria-expanded="true" aria-label="Hide details">
+        <svg viewBox="0 0 16 16" aria-hidden="true"><path d="m4.5 6.5 3.5 3.5 3.5-3.5" /></svg>
+      </button>
+    </div>
+    <div class="card-scroll" data-scroll tabindex="0" aria-label="Step details">
+      {
+        variants.map((v, i) => {
+          const total = walk(v.flow).length;
+          const hasCustomer = v.flow.lanes.some((l) => l.actor === 'customer');
+          return (
+            <div class="variant-slot" data-variant={v.id} data-active={i === 0 || undefined}>
+              <article class="detail overview" data-n="0">
+                {variants.length > 1 && (
+                  <p class="this-time">
+                    <span class="sw" style={`--c: var(--${v.tone ?? 'info'})`} />
+                    This time: <b>{v.label}</b>
+                  </p>
+                )}
+                <h2 class="title">{v.flow.title}</h2>
+                <p class="caption">{v.flow.summary}</p>
+                {v.lesson && (
+                  <p class="lesson-line">
+                    <span class="seclabel">The lesson</span>
+                    <b>{v.lesson}</b>
+                  </p>
+                )}
+                {v.basis && <p class="basis">Based on: {v.basis}</p>}
+                <div class="big">
+                  <span class="n">{total}</span>
+                  <span class="u">steps on this path, between {v.flow.lanes.length} parties</span>
+                </div>
+                <div class="cast">
+                  {v.flow.lanes.map((l) => (
+                    <span class="party" style={`--c: var(--c-${l.actor})`}>
+                      <span class="sw" />
+                      {actors[l.actor].name}
+                    </span>
+                  ))}
+                </div>
+                <section class="sec">
+                  <p class="seclabel">How to read the diagram</p>
+                  <ul class="legend">
+                    <li>
+                      <span class="lg-line" />A request: someone asks or sends
+                    </li>
+                    <li>
+                      <span class="lg-line dashed" />A reply: someone answers
+                    </li>
+                    <li>
+                      <span class="lg-box" />Work done inside one party
+                    </li>
+                  </ul>
+                </section>
+                <p class="hint">
+                  <b>Next</b> or <b>→</b> to step through · <b>Tap</b> any step to jump · <b>Tap</b> a dotted word for
+                  its meaning
+                </p>
+              </article>
+              {allSteps(v.flow.blocks).map((s) => (
+                <StepDetail step={s} />
+              ))}
+              {v.flow.showRecords && (
+                <section class="sec state" data-records-sec>
+                  <p class="seclabel">What RSOP remembers</p>
+                  <div class="records" data-records />
+                </section>
+              )}
+              {hasCustomer && (
+                <section class="sec state phone-in-card">
+                  <p class="seclabel">Sara’s phone</p>
+                  <Phone initial={v.flow.initialScreen ?? 'enter-bill'} amount={v.amount} />
+                </section>
+              )}
+              <script type="application/json" data-path set:html={json(data[i])} />
+            </div>
+          );
+        })
+      }
+    </div>
+    <div class="controls">
+      <div class="progress" aria-hidden="true"><span data-bar></span></div>
+      <div class="ctl-row">
+        <button type="button" class="ctl" data-act="prev" aria-label="Previous step">
+          <svg viewBox="0 0 16 16" aria-hidden="true"><path d="M13 8H3M6.5 4.5 3 8l3.5 3.5" /></svg>
+        </button>
+        <button type="button" class="ctl" data-act="play" aria-label="Play">
+          <svg class="i-play" viewBox="0 0 16 16" aria-hidden="true"><path d="M5 3.5v9l7.5-4.5z" /></svg>
+          <svg class="i-pause" viewBox="0 0 16 16" aria-hidden="true"><path d="M5.5 3.5v9M10.5 3.5v9" /></svg>
+        </button>
+        <span class="step-count mono" data-count>0 / 0</span>
+        <button type="button" class="ctl-next" data-act="next">
+          <span data-next-label>Start</span>
+          <svg viewBox="0 0 16 16" aria-hidden="true"><path d="M3 8h10M9.5 4.5 13 8l-3.5 3.5" /></svg>
+        </button>
+      </div>
+    </div>
+  </aside>
+
+  <p class="sr-only" aria-live="polite" data-live></p>
+</main>
+
+<script>
+  import { initPlayers } from '../../scripts/player';
+  initPlayers();
+</script>

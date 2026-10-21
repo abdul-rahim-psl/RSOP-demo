@@ -1,0 +1,18 @@
+sequenceDiagram
+autonumber
+actor C as Customer
+participant B as Payment Bank
+participant R as RAAST API Gateway
+participant O as Open Connect (RSOP)
+participant G as Government Biller (Mock)
+C->>B: Select institution and enter bill reference
+B->>R: Bill Inquiry API (institution, bill reference)
+R->>O: Forward Bill Inquiry request
+O->>G: Call mock Bill Inquiry web service
+G->>G: Retrieve bill and generate unique inquiry identifier
+G-->>O: Bill details, amount, currency, unique inquiry identifier
+O->>O: Persist identifier and amount pair<br/>with institution, bill reference and status OPEN
+O-->>R: Bill details, amount, currency, unique inquiry identifier
+R-->>B: Return Bill Inquiry response
+B->>B: Retain inquiry identifier for PACS.008 payment
+B-->>C: Display bill details and payable amount

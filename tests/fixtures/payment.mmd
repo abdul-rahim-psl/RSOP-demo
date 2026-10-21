@@ -1,0 +1,38 @@
+sequenceDiagram
+autonumber
+actor C as Customer
+participant B as Payment Bank
+participant R as RAAST
+participant O as Open Connect (RSOP)
+participant G as Government Biller (Mock)
+C->>B: Confirm bill payment
+B->>R: PACS.008 (inquiry identifier, amount, payment reference)
+R->>O: Forward PACS.008 with same identifier and amount
+O->>O: Retrieve inquiry and validate identifier and amount pair<br/>Check inquiry is eligible for payment
+alt RSOP validation failed
+O-->>R: PACS.002 / NAUTH (rejection reason)
+R->>R: Reject transaction
+par Notify Payment Bank
+R-->>B: PACS.002 / RJCT
+B-->>C: Payment rejected
+and Notify RSOP
+R-->>O: PACS.002 / RJCT
+O->>O: Mark payment attempt REJECTED
+end
+Note over O,G: Do not call Bill Marking web service
+else RSOP validation successful
+O->>O: Reserve inquiry for this payment<br/>Set status AWAITING_ACSP
+O-->>R: PACS.002 / AUTH
+R->>R: Accept and settle transaction
+par Notify Payment Bank
+R-->>B: PACS.002 / ACSP
+B-->>C: Payment successful
+and Notify RSOP
+R-->>O: PACS.002 / ACSP
+O->>O: Correlate payment and mark payment DONE<br/>Persist bill-marking task
+end
+O->>G: Call mock Bill Marking web service<br/>(inquiry identifier, amount, payment reference)
+G->>G: Mark bill paid idempotently
+G-->>O: Bill marking confirmation
+O->>O: Mark bill notification COMPLETE
+end

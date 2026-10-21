@@ -1,0 +1,367 @@
+---
+import Base from '../layouts/Base.astro';
+import Lesson from '../components/Lesson.astro';
+import PageToc from '../components/PageToc.astro';
+import ChapterNav from '../components/ChapterNav.astro';
+import StatusChip from '../components/flow/StatusChip.astro';
+import NettingFigure from '../components/settlement/NettingFigure.astro';
+import { rich } from '../lib/rich';
+
+const toc = [
+  { id: 'acsp', label: 'What ACSP means' },
+  { id: 'cycle', label: 'One cycle, step by step' },
+  { id: 'cap', label: 'Why it cannot fail' },
+  { id: 'week', label: 'Nights and weekends' },
+];
+const days = ['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat', 'Sun'];
+---
+
+<Base title="After the payment" description="What “accepted, settlement in process” means, and how the banks square up later in PRISM+, the State Bank’s RTGS.">
+  <main class="wrap page">
+    <header class="page-head">
+      <p class="eyebrow">Chapter 05 · 3 min</p>
+      <h1 class="headline">After the payment<span class="pd">.</span></h1>
+      <p class="lede">
+        Sara’s app says paid and the biller knows. Yet Demo Bank has not actually paid anyone. Here is what happens to
+        the money next, and why it is safe.
+      </p>
+    </header>
+
+    <div class="layout">
+      <aside class="side"><PageToc items={toc} /></aside>
+      <div class="content">
+        <Lesson id="acsp" n={1} label="What ACSP means" title="Accepted, settlement in process">
+          <p set:html={rich('When Raast sent [[ACSP]], it meant exactly what the letters say: accepted, settlement in process.')} />
+          <p set:html={rich('Sara’s payment is accepted and recorded in Raast, so her app says paid and RSOP tells the biller. But between the banks, the money still has to move. That happens one layer down, in [[PRISM+]].')} />
+          <div slot="figure" class="acsp glass">
+            <div class="acsp-top">
+              <span class="mono">pacs.002</span>
+              <StatusChip code="ACSP" />
+            </div>
+            <div class="half">
+              <span class="ico ok"><svg viewBox="0 0 16 16"><path d="m4 8.4 2.6 2.5L12 5.3"></path></svg></span>
+              <div>
+                <p class="h">Accepted</p>
+                <p>In Raast, in seconds. Sara sees “Payment successful”, and bill marking can start.</p>
+              </div>
+            </div>
+            <div class="half">
+              <span class="ico wait"><svg viewBox="0 0 16 16"><path d="M8 4.5V8l2.4 1.6"></path><circle cx="8" cy="8" r="5.6"></circle></svg></span>
+              <div>
+                <p class="h">Settlement in process</p>
+                <p>In PRISM+, at the next cut-off. Then the banks’ own money moves.</p>
+              </div>
+            </div>
+            <p class="src">ACSP stands for AcceptedSettlementInProcess · CMA TS 082 002</p>
+          </div>
+        </Lesson>
+
+        <Lesson id="cycle" n={2} label="One cycle, step by step" title="Many payments, few transfers">
+          <p set:html={rich('Raast does not move real money for each payment. It keeps a running total, a [[position]], for each participant.')} />
+          <p set:html={rich('At each [[cut-off]] it adds everything up, and only the differences move: one amount per participant, [[net settlement|net-settlement]]. Step through one cycle.')} />
+          <p class="aside">
+            The demo doc does not say which participant receives the money for a government bill, so this guide calls it
+            “the government’s receiving side”.
+          </p>
+          <NettingFigure slot="figure" />
+        </Lesson>
+
+        <Lesson id="cap" n={3} label="Why it cannot fail" title="The money is already there">
+          <p set:html={rich('Every bank sets money aside at the State Bank to back its Raast payments: its [[reserve]]. Raast never lets a bank’s position go past that cap.')} />
+          <p>
+            So when the cut-off comes, the money to settle is already waiting. A payment that would take a bank past its
+            cap is refused before it starts.
+          </p>
+          <div slot="figure" class="cap glass">
+            <p class="seclabel">Demo Bank’s Raast cap · illustrative</p>
+            <div class="capbar" role="img" aria-label="Of a 50,000 cap, 5,150 is used and 44,850 is left">
+              <span class="used" style="width: 10.3%"></span>
+            </div>
+            <div class="capkey">
+              <span><span class="sw" style="--c: var(--c-bank)"></span><b class="mono">5,150</b> used this cycle</span>
+              <span><span class="sw" style="--c: var(--stroke-strong)"></span><b class="mono">44,850</b> room left</span>
+              <span class="mono capmax">cap 50,000</span>
+            </div>
+            <p class="note">The cap tracks the reserve at the State Bank, so Raast can never let Demo Bank promise money it has not set aside.</p>
+            <p class="src">Source: Raast learning notes (CMA design documents, SBP)</p>
+          </div>
+        </Lesson>
+
+        <Lesson id="week" n={4} label="Nights and weekends" title="Clearing never sleeps; settlement does">
+          <p>
+            Raast clears 24x7, but PRISM+ settles on business days. A payment made on Saturday night is accepted in Raast
+            straight away, and settles at the next cut-off on a business day.
+          </p>
+          <p>That is why the State Bank tells banks to keep enough in their Raast reserve before weekends and long holidays.</p>
+          <div slot="figure" class="week glass">
+            <div class="days">
+              {
+                days.map((d, i) => (
+                  <div class:list={['day', { off: i >= 5 }]}>
+                    <span class="dn">{d}</span>
+                    <span class="clr" aria-hidden="true">
+                      <i />
+                      <i />
+                      <i />
+                    </span>
+                    <span class="stl">{i < 5 ? 'cut-offs' : 'waits'}</span>
+                  </div>
+                ))
+              }
+            </div>
+            <div class="weekkey">
+              <span><span class="sw" style="--c: var(--c-raast)"></span>Raast clears, every day</span>
+              <span><span class="sw" style="--c: var(--c-prism)"></span>PRISM+ settles, business days</span>
+            </div>
+            <p class="note">The number of cut-offs per day under PRISM+ was not found in our sources (it was two a day in May 2021), so none is shown.</p>
+            <p class="src">Source: SBP DI&SD Circular No. 1 of 2022, via the Raast learning notes</p>
+          </div>
+        </Lesson>
+
+        <section class="end glass">
+          <p class="eyebrow">That is the whole story</p>
+          <p class="end-t">From “how much do I owe?” to money that has really moved<span class="pd">.</span></p>
+          <div class="end-links">
+            <a class="btn primary" href="/payment">Replay the payment</a>
+            <a class="btn" href="/glossary">Open the glossary</a>
+            <a class="btn" href="/">Back to the start</a>
+          </div>
+        </section>
+
+        <ChapterNav href="/settlement" />
+      </div>
+    </div>
+  </main>
+</Base>
+
+<style>
+  .page {
+    padding-top: 44px;
+  }
+
+  .page-head {
+    display: grid;
+    gap: 14px;
+    padding-bottom: 40px;
+  }
+
+  .layout {
+    display: grid;
+    grid-template-columns: 200px minmax(0, 1fr);
+    gap: 48px;
+  }
+
+  .side {
+    padding-top: 56px;
+  }
+
+  .aside {
+    font-size: 0.86rem !important;
+    color: var(--mut) !important;
+  }
+
+  .acsp,
+  .cap,
+  .week {
+    display: grid;
+    gap: 14px;
+    padding: 16px 18px 18px;
+  }
+
+  .acsp-top {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+  }
+
+  .acsp-top .mono {
+    font-size: 1.15rem;
+    font-weight: 700;
+  }
+
+  .half {
+    display: grid;
+    grid-template-columns: auto 1fr;
+    gap: 12px;
+    padding: 12px;
+    border: 1px solid var(--stroke);
+    border-radius: var(--radius-sm);
+  }
+
+  .half .h {
+    font-weight: 900;
+  }
+
+  .half p:not(.h) {
+    font-size: 0.86rem;
+    color: var(--ink-2);
+  }
+
+  .ico {
+    display: grid;
+    place-items: center;
+    width: 28px;
+    height: 28px;
+    border-radius: 50%;
+  }
+
+  .ico.ok {
+    background: var(--ok);
+  }
+
+  .ico.wait {
+    background: var(--wait);
+  }
+
+  .ico svg {
+    width: 17px;
+    height: 17px;
+    fill: none;
+    stroke: var(--bg);
+    stroke-width: 2;
+    stroke-linecap: round;
+    stroke-linejoin: round;
+  }
+
+  .src {
+    font-size: 0.72rem;
+    color: var(--faint);
+  }
+
+  .note {
+    font-size: 0.86rem;
+    line-height: 1.55;
+    color: var(--ink-2);
+  }
+
+  .capbar {
+    height: 22px;
+    border-radius: 6px;
+    background: var(--stroke);
+    overflow: hidden;
+  }
+
+  .used {
+    display: block;
+    height: 100%;
+    background: var(--c-bank);
+    border-radius: 6px 0 0 6px;
+  }
+
+  .capkey,
+  .weekkey {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 6px 18px;
+    font-size: 0.8rem;
+    color: var(--mut);
+  }
+
+  .capkey span,
+  .weekkey span {
+    display: inline-flex;
+    align-items: center;
+    gap: 7px;
+  }
+
+  .capkey b {
+    color: var(--ink);
+  }
+
+  .capmax {
+    margin-left: auto;
+  }
+
+  .days {
+    display: grid;
+    grid-template-columns: repeat(7, minmax(0, 1fr));
+    gap: 6px;
+  }
+
+  .day {
+    display: grid;
+    justify-items: center;
+    gap: 8px;
+    padding: 10px 4px;
+    border: 1px solid var(--stroke);
+    border-radius: 11px;
+  }
+
+  .dn {
+    font-size: 0.78rem;
+    font-weight: 900;
+  }
+
+  .clr {
+    display: flex;
+    gap: 3px;
+  }
+
+  .clr i {
+    width: 6px;
+    height: 6px;
+    border-radius: 50%;
+    background: var(--c-raast);
+  }
+
+  .stl {
+    width: 100%;
+    padding: 3px 0;
+    border-radius: 6px;
+    background: color-mix(in srgb, var(--c-prism) 70%, transparent);
+    color: var(--bg);
+    font-size: 0.62rem;
+    font-weight: 900;
+    text-align: center;
+  }
+
+  .off {
+    border-style: dashed;
+  }
+
+  .off .stl {
+    background: transparent;
+    border: 1px dashed var(--stroke-strong);
+    color: var(--mut);
+  }
+
+  .end {
+    display: grid;
+    gap: 12px;
+    margin: 56px 0 28px;
+    padding: 26px 28px;
+  }
+
+  .end-t {
+    font-family: var(--font-serif);
+    font-size: clamp(1.6rem, 3vw, 2.2rem);
+    line-height: 1.15;
+  }
+
+  .end-links {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 10px;
+    margin-top: 6px;
+  }
+
+  @media (max-width: 1100px) {
+    .layout {
+      grid-template-columns: 1fr;
+    }
+
+    .side {
+      display: none;
+    }
+  }
+
+  @media (max-width: 520px) {
+    .days {
+      gap: 3px;
+    }
+
+    .stl {
+      font-size: 0.5rem;
+    }
+  }
+</style>

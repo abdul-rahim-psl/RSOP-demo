@@ -1,0 +1,248 @@
+---
+import { actorOrder, actors } from '../../data/actors';
+import { cast } from '../../data/cast';
+---
+
+{
+  actorOrder.map((a, i) => {
+    const c = cast[a];
+    return (
+      <div id={`party-${a}`} class="party-card glass" popover style={`--c: var(--c-${a})`}>
+        <div class="bar">
+          <p class="meta">
+            <span class="sw" />
+            The cast · {i + 1} of 5
+          </p>
+          <button type="button" class="x" popovertarget={`party-${a}`} popovertargetaction="hide" aria-label="Close">
+            ×
+          </button>
+        </div>
+        <p class="ttl">{actors[a].name}</p>
+        <p class="role">{actors[a].role}</p>
+        <p class="job">{actors[a].job}</p>
+        <p class="about">{actors[a].about}</p>
+
+        <div class="big">
+          <span class="n">{c.total}</span>
+          <span class="u">steps across the two flows</span>
+        </div>
+
+        <div class="sec">
+          <p class="seclabel">
+            In the bill inquiry <span class="k mono">{c.inquiry.length}</span>
+          </p>
+          <div class="rows">
+            {c.inquiry.map((s) => (
+              <a class="prow" href={s.href}>
+                <span class="rn mono">{String(s.n).padStart(2, '0')}</span>
+                <span class="rt">{s.title}</span>
+                <span class="ra">→</span>
+              </a>
+            ))}
+          </div>
+        </div>
+
+        <div class="sec">
+          <p class="seclabel">
+            In the bill payment <span class="k mono">{c.payment.length}</span>
+          </p>
+          <div class="rows">
+            {c.payment.map((s) => (
+              <a class="prow" href={s.href}>
+                <span class="rn mono">{String(s.n).padStart(2, '0')}</span>
+                <span class="rt">
+                  {s.title}
+                  {s.refusedOnly && <span class="if">if refused</span>}
+                </span>
+                <span class="ra">→</span>
+              </a>
+            ))}
+          </div>
+        </div>
+
+        <div class="sec">
+          <p class="seclabel">Talks to</p>
+          <div class="rows">
+            {c.talksTo.map((t) => (
+              <button type="button" class="prow" popovertarget={`party-${t.actor}`} style={`--c: var(--c-${t.actor})`}>
+                <span class="sw" />
+                <span class="rt">{actors[t.actor].name}</span>
+                <span class="ra mono">{t.messages} messages</span>
+              </button>
+            ))}
+          </div>
+        </div>
+      </div>
+    );
+  })
+}
+
+<style>
+  .party-card {
+    inset: calc(var(--header-h) + 16px) 26px auto auto;
+    width: 348px;
+    max-height: calc(100dvh - var(--header-h) - 32px);
+    margin: 0;
+    padding: 16px 18px 18px;
+    overflow-y: auto;
+    overscroll-behavior: contain;
+    color: var(--ink);
+    box-shadow: var(--shadow);
+  }
+
+  .bar {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    margin-bottom: 8px;
+  }
+
+  .meta {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    font-size: 0.66rem;
+    font-weight: 800;
+    letter-spacing: 0.13em;
+    text-transform: uppercase;
+    color: var(--mut);
+  }
+
+  .x {
+    display: grid;
+    place-items: center;
+    width: 26px;
+    height: 26px;
+    border: 1px solid var(--stroke);
+    border-radius: 8px;
+    background: transparent;
+    color: var(--mut);
+    font-size: 1rem;
+    line-height: 1;
+    cursor: pointer;
+  }
+
+  .x:hover {
+    color: var(--ink);
+    background: var(--hover);
+  }
+
+  .ttl {
+    font-family: var(--font-serif);
+    font-size: 2rem;
+    font-weight: 500;
+    line-height: 1.05;
+  }
+
+  .role {
+    margin-bottom: 10px;
+    font-size: 0.66rem;
+    font-weight: 800;
+    letter-spacing: 0.13em;
+    text-transform: uppercase;
+    color: var(--c);
+  }
+
+  .job {
+    font-size: 0.92rem;
+    line-height: 1.55;
+    color: var(--ink-2);
+    margin-bottom: 8px;
+  }
+
+  .about {
+    font-size: 0.82rem;
+    line-height: 1.55;
+    color: var(--mut);
+  }
+
+  .big {
+    display: flex;
+    align-items: baseline;
+    gap: 8px;
+    margin: 14px 0 2px;
+  }
+
+  .big .n {
+    font-size: 2.1rem;
+    font-weight: 900;
+    letter-spacing: -0.03em;
+    line-height: 1;
+  }
+
+  .big .u {
+    font-size: 0.8rem;
+    font-weight: 700;
+    color: var(--mut);
+  }
+
+  .sec {
+    margin-top: 16px;
+  }
+
+  .sec .seclabel {
+    margin-bottom: 6px;
+  }
+
+  .k {
+    color: var(--mut);
+    letter-spacing: 0;
+  }
+
+  .rows {
+    display: grid;
+    gap: 2px;
+  }
+
+  .prow {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    width: 100%;
+    padding: 6px 8px;
+    border: 1px solid transparent;
+    border-radius: 9px;
+    background: transparent;
+    color: var(--ink);
+    font-size: 0.84rem;
+    font-weight: 700;
+    text-align: left;
+    text-decoration: none;
+    cursor: pointer;
+  }
+
+  .prow:hover {
+    background: var(--hover);
+    border-color: var(--stroke);
+  }
+
+  .rn {
+    font-size: 0.7rem;
+    color: var(--faint);
+  }
+
+  .rt {
+    flex: 1;
+    line-height: 1.3;
+  }
+
+  .if {
+    margin-left: 6px;
+    font-size: 0.66rem;
+    font-weight: 800;
+    color: var(--fail);
+  }
+
+  .ra {
+    font-size: 0.74rem;
+    color: var(--faint);
+  }
+
+  @media (max-width: 720px) {
+    .party-card {
+      inset: auto 12px 12px 12px;
+      width: auto;
+      max-height: 72dvh;
+    }
+  }
+</style>

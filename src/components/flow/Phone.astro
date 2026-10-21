@@ -1,0 +1,73 @@
+---
+import type { Screen } from '../../lib/flow';
+import { pkr, sample } from '../../data/sample';
+
+interface Props {
+  initial: Screen;
+  amount?: string;
+}
+
+const { initial, amount = sample.amount } = Astro.props;
+const screens: Screen[] = ['enter-bill', 'fetching', 'bill-shown', 'confirm', 'processing', 'paid', 'rejected'];
+---
+
+<div class="phone" data-phone aria-label="Sara’s phone">
+  <div class="notch" aria-hidden="true"></div>
+  <div class="appbar">
+    <span class="sw" style="--c: var(--c-bank)"></span>
+    <span>Demo Bank</span>
+  </div>
+  {
+    screens.map((s) => (
+      <div class="screen" data-s={s} hidden={s !== initial}>
+        {s === 'enter-bill' && (
+          <>
+            <p class="ttl">Pay a bill</p>
+            <div class="fld">
+              <span>Institution</span>
+              <b>{sample.institution}</b>
+            </div>
+            <div class="fld">
+              <span>Bill reference</span>
+              <b class="mono">{sample.billRef}</b>
+            </div>
+            <span class="cta">Fetch bill</span>
+          </>
+        )}
+        {(s === 'fetching' || s === 'processing') && (
+          <div class="wait">
+            <span class="spin" aria-hidden="true" />
+            <p>{s === 'fetching' ? 'Fetching your bill…' : 'Processing payment…'}</p>
+          </div>
+        )}
+        {s === 'bill-shown' && (
+          <>
+            <p class="ttl">{sample.bill}</p>
+            <p class="sub">{sample.institution}</p>
+            <p class="amt">{pkr(sample.amount)}</p>
+            <p class="sub mono">{sample.billRef}</p>
+            <span class="cta">Pay</span>
+          </>
+        )}
+        {s === 'confirm' && (
+          <>
+            <p class="ttl">Confirm payment</p>
+            <p class="amt">{pkr(amount)}</p>
+            <p class="sub">to {sample.institution}</p>
+            <span class="cta pressed">Confirm</span>
+          </>
+        )}
+        {(s === 'paid' || s === 'rejected') && (
+          <div class="result" data-tone={s === 'paid' ? 'ok' : 'fail'}>
+            <span class="badge" aria-hidden="true">
+              <svg viewBox="0 0 16 16">{s === 'paid' ? <path d="m4 8.4 2.6 2.5L12 5.3" /> : <path d="M5 5l6 6M11 5l-6 6" />}</svg>
+            </span>
+            <p class="ttl">{s === 'paid' ? 'Payment successful' : 'Payment rejected'}</p>
+            <p class="amt sm">{pkr(amount)}</p>
+            <p class="sub">{s === 'paid' ? sample.paymentRef : 'Your bill is still unpaid.'}</p>
+          </div>
+        )}
+      </div>
+    ))
+  }
+</div>

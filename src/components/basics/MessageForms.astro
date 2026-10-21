@@ -1,0 +1,130 @@
+---
+import StatusChip from '../flow/StatusChip.astro';
+import { pkr, sample } from '../../data/sample';
+
+const statuses = [
+  { code: 'AUTH', who: 'The receiving side', what: 'approves the payment' },
+  { code: 'NAUT', who: 'The receiving side', what: 'refuses it, with a reason' },
+  { code: 'ACSP', who: 'Raast', what: 'accepted, settlement in process' },
+  { code: 'RJCT', who: 'Raast', what: 'rejected: it will not happen' },
+] as const;
+---
+
+<figure class="forms">
+  <div class="form glass">
+    <p class="fhead"><span class="mono">pacs.008</span><span>a payment instruction</span></p>
+    <dl>
+      <div><dt>From</dt><dd>Demo Bank, for Sara</dd></div>
+      <div><dt>Amount</dt><dd class="mono">{pkr(sample.amount)}</dd></div>
+      <div><dt>Inquiry ID</dt><dd class="mono">{sample.inquiryId}</dd></div>
+      <div><dt>Payment reference</dt><dd class="mono">{sample.paymentRef}</dd></div>
+    </dl>
+  </div>
+  <div class="form glass">
+    <p class="fhead"><span class="mono">pacs.002</span><span>a status reply</span></p>
+    <ul>
+      {
+        statuses.map((s) => (
+          <li>
+            <StatusChip code={s.code} />
+            <span>
+              <b>{s.who}</b> {s.what}
+            </span>
+          </li>
+        ))
+      }
+    </ul>
+  </div>
+  <figcaption>Simplified: real ISO 20022 messages carry many more fields. These are the ones this demo cares about.</figcaption>
+</figure>
+
+<style>
+  .forms {
+    display: grid;
+    gap: 12px;
+  }
+
+  .form {
+    padding: 14px 16px 16px;
+  }
+
+  .fhead {
+    display: flex;
+    align-items: baseline;
+    flex-wrap: wrap;
+    gap: 4px 10px;
+    margin-bottom: 10px;
+    padding-bottom: 10px;
+    border-bottom: 1px dashed var(--stroke-strong);
+  }
+
+  .fhead .mono {
+    font-size: 1.15rem;
+    font-weight: 700;
+  }
+
+  .fhead span:last-child {
+    font-size: 0.82rem;
+    font-weight: 700;
+    color: var(--mut);
+  }
+
+  dl {
+    display: grid;
+    gap: 6px;
+  }
+
+  dl div {
+    display: grid;
+    grid-template-columns: 10em 1fr;
+    gap: 10px;
+    font-size: 0.84rem;
+  }
+
+  dt {
+    color: var(--mut);
+    font-weight: 700;
+  }
+
+  dd {
+    overflow-wrap: anywhere;
+  }
+
+  ul {
+    display: grid;
+    gap: 9px;
+    padding: 0;
+    list-style: none;
+  }
+
+  li {
+    display: grid;
+    grid-template-columns: 9.2em 1fr;
+    align-items: center;
+    gap: 10px;
+    font-size: 0.84rem;
+    color: var(--ink-2);
+  }
+
+  li b {
+    color: var(--ink);
+  }
+
+  figcaption {
+    font-size: 0.76rem;
+    color: var(--faint);
+  }
+
+  @media (max-width: 460px) {
+    dl div,
+    li {
+      grid-template-columns: 1fr;
+      gap: 2px;
+    }
+
+    li {
+      gap: 6px;
+      justify-items: start;
+    }
+  }
+</style>

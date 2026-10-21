@@ -1,0 +1,215 @@
+---
+import { actorOrder, actors } from '../../data/actors';
+import ActorIcon from '../ActorIcon.astro';
+
+// Positions on a 600 × 420 canvas: the five parties on an arc, Sara to the biller.
+const pos = {
+  customer: [70, 300],
+  bank: [168, 168],
+  raast: [300, 104],
+  rsop: [432, 168],
+  biller: [530, 300],
+} as const;
+
+const route = 'M70 300 C 96 236, 122 196, 168 168 S 252 104, 300 104 S 392 138, 432 168 S 504 236, 530 300';
+
+// A fixed starfield, so every build draws the same sky.
+let seed = 20261021;
+const rand = () => ((seed = (seed * 1664525 + 1013904223) % 4294967296) / 4294967296);
+const hues = ['customer', 'bank', 'raast', 'rsop', 'biller', 'bank', 'rsop'];
+const stars = Array.from({ length: 96 }, (_, i) => ({
+  x: rand() * 600,
+  y: rand() * 420,
+  r: 0.7 + rand() * 2.1,
+  o: 0.18 + rand() * 0.42,
+  c: hues[i % hues.length],
+  d: (rand() * 6).toFixed(2),
+}));
+
+const particles = [
+  { c: 'var(--ink)', begin: '0s' },
+  { c: 'var(--c-raast)', begin: '-3s' },
+  { c: 'var(--c-bank)', begin: '-6s' },
+];
+---
+
+<div class="constellation">
+  <svg class="sky" viewBox="0 0 600 420" aria-hidden="true">
+    <defs>
+      {
+        actorOrder.map((a) => (
+          <radialGradient id={`halo-${a}`}>
+            <stop offset="0%" stop-color={`var(--c-${a})`} stop-opacity="0.55" />
+            <stop offset="100%" stop-color={`var(--c-${a})`} stop-opacity="0" />
+          </radialGradient>
+        ))
+      }
+    </defs>
+    {stars.map((s) => <circle class="star" cx={s.x} cy={s.y} r={s.r} fill={`var(--c-${s.c})`} style={`--o: ${s.o}; --d: ${s.d}s`} />)}
+    <path id="route" d={route} class="route" />
+    <path d={route} class="route-glow" />
+    {actorOrder.map((a) => <circle class="halo" cx={pos[a][0]} cy={pos[a][1]} r="64" fill={`url(#halo-${a})`} />)}
+    <g class="particles">
+      {
+        particles.map((p) => (
+          <circle r="4.5" fill={p.c} class="particle">
+            <animateMotion dur="9s" begin={p.begin} repeatCount="indefinite" keyPoints="0;1;0" keyTimes="0;0.5;1" calcMode="linear">
+              <mpath href="#route" />
+            </animateMotion>
+          </circle>
+        ))
+      }
+    </g>
+  </svg>
+
+  {
+    actorOrder.map((a) => (
+      <button
+        type="button"
+        class="cnode"
+        popovertarget={`party-${a}`}
+        style={`left: ${(pos[a][0] / 600) * 100}%; top: ${(pos[a][1] / 420) * 100}%; --c: var(--c-${a})`}
+        aria-label={`Meet ${actors[a].name}, ${actors[a].role}`}
+      >
+        <span class="disc">
+          <ActorIcon actor={a} size={24} />
+        </span>
+        <span class="cname">{actors[a].name}</span>
+        <span class="crole">{actors[a].role}</span>
+      </button>
+    ))
+  }
+</div>
+
+<style>
+  .constellation {
+    position: relative;
+    width: 100%;
+    aspect-ratio: 600 / 420;
+  }
+
+  .sky {
+    position: absolute;
+    inset: 0;
+    width: 100%;
+    height: 100%;
+    overflow: visible;
+  }
+
+  .star {
+    opacity: var(--o);
+    animation: twinkle 5.5s ease-in-out var(--d) infinite alternate;
+  }
+
+  @keyframes twinkle {
+    to {
+      opacity: calc(var(--o) * 0.35);
+    }
+  }
+
+  .route {
+    fill: none;
+    stroke: var(--stroke-strong);
+    stroke-width: 1.4;
+    stroke-dasharray: 2 6;
+    stroke-linecap: round;
+  }
+
+  .route-glow {
+    fill: none;
+    stroke: var(--ink);
+    stroke-opacity: 0.08;
+    stroke-width: 10;
+    stroke-linecap: round;
+  }
+
+  .particle {
+    filter: drop-shadow(0 0 6px currentColor);
+  }
+
+  @media (prefers-reduced-motion: reduce) {
+    .particles {
+      display: none;
+    }
+  }
+
+  .cnode {
+    position: absolute;
+    z-index: 2;
+    display: grid;
+    justify-items: center;
+    gap: 3px;
+    width: 128px;
+    padding: 0;
+    border: 0;
+    background: none;
+    transform: translate(-50%, -32px);
+    cursor: pointer;
+  }
+
+  .disc {
+    display: grid;
+    place-items: center;
+    width: 64px;
+    height: 64px;
+    margin-bottom: 6px;
+    border: 1.5px solid var(--c);
+    border-radius: 50%;
+    background: color-mix(in srgb, var(--c) 18%, var(--bg));
+    color: var(--ink);
+    box-shadow:
+      0 0 0 6px color-mix(in srgb, var(--c) 10%, transparent),
+      0 0 40px color-mix(in srgb, var(--c) 45%, transparent);
+    transition:
+      transform 0.2s,
+      box-shadow 0.2s;
+  }
+
+  .cnode:hover .disc,
+  .cnode:focus-visible .disc {
+    transform: scale(1.08);
+    box-shadow:
+      0 0 0 8px color-mix(in srgb, var(--c) 22%, transparent),
+      0 0 54px color-mix(in srgb, var(--c) 70%, transparent);
+  }
+
+  .cname {
+    font-size: 1rem;
+    font-weight: 900;
+    letter-spacing: -0.01em;
+  }
+
+  .crole {
+    font-size: 0.6rem;
+    font-weight: 800;
+    letter-spacing: 0.13em;
+    text-transform: uppercase;
+    color: var(--faint);
+  }
+
+  @media (max-width: 560px) {
+    .cnode {
+      width: 88px;
+      transform: translate(-50%, -22px);
+    }
+
+    .disc {
+      width: 44px;
+      height: 44px;
+      margin-bottom: 3px;
+    }
+
+    .disc :global(svg) {
+      width: 19px;
+      height: 19px;
+    }
+
+    .cname {
+      font-size: 0.82rem;
+    }
+
+    .crole {
+      display: none;
+    }
+  }
+</style>

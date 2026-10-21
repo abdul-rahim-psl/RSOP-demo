@@ -1,0 +1,71 @@
+---
+import type { Status } from '../../lib/flow';
+
+interface Props {
+  code: Status;
+}
+
+const meta: Record<Status, { tone: 'ok' | 'fail'; word: string }> = {
+  AUTH: { tone: 'ok', word: 'approved' },
+  NAUT: { tone: 'fail', word: 'refused' },
+  ACSP: { tone: 'ok', word: 'accepted' },
+  RJCT: { tone: 'fail', word: 'rejected' },
+};
+
+const { code } = Astro.props;
+const { tone, word } = meta[code];
+---
+
+<span class="status" data-tone={tone} aria-label={`Status: ${word}, ${code}`}>
+  <svg viewBox="0 0 16 16" aria-hidden="true">
+    {tone === 'ok' ? <path d="m4 8.4 2.6 2.5L12 5.3" /> : <path d="M5 5l6 6M11 5l-6 6" />}
+  </svg>
+  <span class="code mono">{code}</span>
+  <span class="word">{word}</span>
+</span>
+
+<style>
+  .status {
+    display: inline-flex;
+    align-items: center;
+    gap: 7px;
+    padding: 4px 11px 4px 5px;
+    border: 1px solid color-mix(in srgb, var(--tone) 45%, transparent);
+    border-radius: 999px;
+    background: color-mix(in srgb, var(--tone) 12%, transparent);
+    color: var(--ink);
+    font-size: 0.8rem;
+    font-weight: 800;
+  }
+
+  .status[data-tone='ok'] {
+    --tone: var(--ok);
+  }
+
+  .status[data-tone='fail'] {
+    --tone: var(--fail);
+  }
+
+  svg {
+    width: 18px;
+    height: 18px;
+    padding: 2px;
+    border-radius: 50%;
+    background: var(--tone);
+    fill: none;
+    stroke: var(--bg);
+    stroke-width: 2.2;
+    stroke-linecap: round;
+    stroke-linejoin: round;
+  }
+
+  .code {
+    font-size: 0.78rem;
+    letter-spacing: 0.04em;
+  }
+
+  .word {
+    color: var(--mut);
+    font-weight: 700;
+  }
+</style>

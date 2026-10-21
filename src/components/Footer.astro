@@ -1,0 +1,55 @@
+<footer class="site-footer">
+  <div class="wrap row">
+    <p>
+      <strong>A learning demo.</strong> The bill payment flow is the agreed design for an Open Connect RSOP demo with a
+      mock government biller, not a published Raast service. Every person, bank, bill and number is fictional. Not
+      affiliated with the State Bank of Pakistan, RPP or Raast.
+    </p>
+    <a href="/glossary#sources">Sources →</a>
+  </div>
+</footer>
+
+<style>
+  .site-footer {
+    margin-top: 72px;
+    padding: 26px 0 34px;
+    border-top: 1px solid var(--stroke);
+  }
+
+  .row {
+    display: flex;
+    align-items: flex-start;
+    justify-content: space-between;
+    gap: 24px;
+  }
+
+  p {
+    max-width: 80ch;
+    font-size: 0.8rem;
+    line-height: 1.6;
+    color: var(--faint);
+  }
+
+  strong {
+    color: var(--mut);
+  }
+
+  a {
+    flex: 0 0 auto;
+    font-size: 0.82rem;
+    font-weight: 800;
+    color: var(--mut);
+    text-decoration: none;
+  }
+
+  a:hover {
+    color: var(--ink);
+  }
+
+  @media (max-width: 640px) {
+    .row {
+      flex-direction: column;
+      gap: 12px;
+    }
+  }
+</style>

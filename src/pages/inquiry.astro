@@ -1,0 +1,34 @@
+---
+import Base from '../layouts/Base.astro';
+import FlowShell from '../components/flow/FlowShell.astro';
+import ChapterNav from '../components/ChapterNav.astro';
+import Takeaways from '../components/Takeaways.astro';
+import DemoNote from '../components/DemoNote.astro';
+import { inquiryFlow } from '../data/flows/inquiry';
+---
+
+<Base title="Bill inquiry" description="How much do I owe? The bill inquiry flow, step by step: from Sara's question to the amount on her screen." app>
+  <FlowShell variants={[{ id: 'inquiry', label: 'Bill inquiry', flow: inquiryFlow }]} docNumbered>
+    <Fragment slot="intro">
+      <p class="eyebrow">Chapter 02 · 3 min</p>
+      <h1 class="headline">How much do I owe<span class="pd">?</span></h1>
+      <p class="lede">
+        Before Sara pays, her bank asks. The question travels through <b>Raast</b> and <b>RSOP</b> to the government
+        biller, and the answer comes back with a unique <b>inquiry ID</b>: the thread that ties the later payment to
+        this question.
+      </p>
+      <p class="hint-line"><b>Next</b> or <b>→</b> to step through · <b>Tap</b> any step to jump · <b>Tap</b> a dotted word for its meaning</p>
+      <DemoNote />
+    </Fragment>
+    <Fragment slot="after">
+      <Takeaways
+        items={[
+          'No money moves during an inquiry. It only answers “how much, and for which bill?”',
+          'RSOP writes down the [[inquiry ID]] and the exact amount before it passes the answer on.',
+          'The bank keeps the inquiry ID: the payment will carry it, so RSOP can match the two.',
+        ]}
+      />
+      <ChapterNav href="/inquiry" />
+    </Fragment>
+  </FlowShell>
+</Base>

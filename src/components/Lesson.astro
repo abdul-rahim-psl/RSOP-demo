@@ -1,0 +1,73 @@
+---
+interface Props {
+  id: string;
+  n: number;
+  label: string;
+  title: string;
+  end?: string;
+}
+
+const { id, n, label, title, end = '.' } = Astro.props;
+---
+
+<section class="lesson" id={id} aria-labelledby={`${id}-h`}>
+  <div class="text">
+    <p class="eyebrow"><span class="mono n">{String(n).padStart(2, '0')}</span> {label}</p>
+    <h2 class="h2" id={`${id}-h`}>{title}<span class="pd">{end}</span></h2>
+    <div class="body">
+      <slot />
+    </div>
+  </div>
+  <div class="fig">
+    <slot name="figure" />
+  </div>
+</section>
+
+<style>
+  .lesson {
+    display: grid;
+    grid-template-columns: minmax(0, 0.9fr) minmax(0, 1.1fr);
+    gap: 26px 44px;
+    align-items: start;
+    padding: 56px 0;
+    border-top: 1px solid var(--stroke);
+    scroll-margin-top: calc(var(--header-h) + 10px);
+  }
+
+  .text {
+    display: grid;
+    gap: 14px;
+  }
+
+  .n {
+    color: var(--accent);
+    letter-spacing: 0;
+  }
+
+  .body {
+    display: grid;
+    gap: 12px;
+  }
+
+  .body :global(p) {
+    font-size: 1.02rem;
+    line-height: 1.7;
+    color: var(--ink-2);
+  }
+
+  .body :global(b) {
+    color: var(--ink);
+  }
+
+  .fig {
+    display: grid;
+    gap: 12px;
+  }
+
+  @media (max-width: 900px) {
+    .lesson {
+      grid-template-columns: 1fr;
+      padding: 44px 0;
+    }
+  }
+</style>

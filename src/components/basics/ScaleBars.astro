@@ -1,0 +1,121 @@
+---
+// Jan–Mar 2026, SBP quarterly review via the learning notes. Each measure has its own scale: never one axis for both.
+const charts = [
+  {
+    title: 'Number of payments',
+    rows: [
+      { name: 'Raast', key: 'raast', value: 742, label: '742 million' },
+      { name: 'PRISM+', key: 'prism', value: 1.46, label: '1.46 million' },
+    ],
+  },
+  {
+    title: 'Value of payments',
+    rows: [
+      { name: 'Raast', key: 'raast', value: 23.3, label: 'PKR 23.3 trillion' },
+      { name: 'PRISM+', key: 'prism', value: 389.8, label: 'PKR 389.8 trillion' },
+    ],
+  },
+];
+---
+
+<figure class="scale glass">
+  <p class="seclabel">Same quarter, two different jobs · Jan–Mar 2026</p>
+  {
+    charts.map((c) => {
+      const max = Math.max(...c.rows.map((r) => r.value));
+      return (
+        <div class="chart">
+          <p class="ctitle">{c.title}</p>
+          {c.rows.map((r) => (
+            <div class="bar-row" title={`${r.name}: ${r.label}`}>
+              <span class="name">
+                <span class="sw" style={`--c: var(--c-${r.key})`} />
+                {r.name}
+              </span>
+              <span class="track">
+                <span class="bar" style={`--c: var(--c-${r.key}); width: max(3px, ${(r.value / max) * 100}%)`} />
+              </span>
+              <span class="val mono">{r.label}</span>
+            </div>
+          ))}
+        </div>
+      );
+    })
+  }
+  <figcaption>
+    <span>Raast carried about <b>509 times</b> as many payments as PRISM+, but only about <b>6%</b> of the value. Small payments clear in Raast; the big ones, and the final settlement, happen in PRISM+.</span>
+    <span class="src">Source: SBP quarterly review, Jan–Mar 2026</span>
+  </figcaption>
+</figure>
+
+<style>
+  .scale {
+    display: grid;
+    gap: 16px;
+    padding: 16px 18px 18px;
+  }
+
+  .chart {
+    display: grid;
+    gap: 8px;
+  }
+
+  .ctitle {
+    font-size: 0.86rem;
+    font-weight: 800;
+  }
+
+  .bar-row {
+    display: grid;
+    grid-template-columns: 74px minmax(0, 1fr);
+    grid-template-areas:
+      'name track'
+      '. val';
+    align-items: center;
+    gap: 2px 10px;
+  }
+
+  .name {
+    grid-area: name;
+    display: inline-flex;
+    align-items: center;
+    gap: 7px;
+    font-size: 0.82rem;
+    font-weight: 800;
+  }
+
+  .track {
+    grid-area: track;
+    height: 14px;
+  }
+
+  .bar {
+    display: block;
+    height: 100%;
+    border-radius: 0 4px 4px 0;
+    background: var(--c);
+  }
+
+  .val {
+    grid-area: val;
+    font-size: 0.74rem;
+    color: var(--mut);
+  }
+
+  figcaption {
+    display: grid;
+    gap: 6px;
+    font-size: 0.88rem;
+    line-height: 1.55;
+    color: var(--ink-2);
+  }
+
+  figcaption b {
+    color: var(--ink);
+  }
+
+  .src {
+    font-size: 0.72rem;
+    color: var(--faint);
+  }
+</style>

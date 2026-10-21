@@ -1,0 +1,106 @@
+---
+import type { Step } from '../../lib/flow';
+import { actors } from '../../data/actors';
+import { rich } from '../../lib/rich';
+import StatusChip from './StatusChip.astro';
+
+interface Props {
+  step: Step;
+}
+
+const { step: s } = Astro.props;
+const from = actors[s.from];
+const to = actors[s.to];
+const docWords = s.docLabel?.split('<br/>');
+---
+
+<article class="detail" data-n={s.n} hidden>
+  <div class="route">
+    <span class="party" style={`--c: var(--c-${s.from})`}><span class="sw"></span>{from.name}</span>
+    {
+      s.kind === 'internal' ? (
+        <span class="inside">working on its own</span>
+      ) : (
+        <>
+          <svg class="dir" viewBox="0 0 16 16" aria-label="to">
+            <path d="M2 8h11M9.5 4.5 13 8l-3.5 3.5" />
+          </svg>
+          <span class="party" style={`--c: var(--c-${s.to})`}><span class="sw"></span>{to.name}</span>
+        </>
+      )
+    }
+  </div>
+
+  <h2 class="title">{s.title}</h2>
+  <p class="caption" set:html={rich(s.caption)} />
+
+  {
+    s.toConfirm && (
+      <p class="confirm">
+        <span class="pill" data-tone="wait">to confirm</span>
+        {s.toConfirm}
+      </p>
+    )
+  }
+
+  {
+    s.message && (
+      <section class="sec">
+        <p class="seclabel">What’s being sent</p>
+        <div class="msg">
+          <div class="big">
+            <span class="n mono">{s.message.name}</span>
+            <span class="u">{s.message.meaning}</span>
+          </div>
+          {s.message.status && <StatusChip code={s.message.status} />}
+          <dl class="fields">
+            {s.message.fields.map((f) => (
+              <div class="field">
+                <dt>{f.label}</dt>
+                <dd>
+                  <span class="mono">{f.value}</span>
+                  {f.toConfirm && <span class="tbc">field to be confirmed</span>}
+                </dd>
+              </div>
+            ))}
+          </dl>
+        </div>
+      </section>
+    )
+  }
+
+  {
+    (docWords || s.hood) && (
+      <details class="hood">
+        <summary>
+          <span>Under the hood</span>
+          <svg viewBox="0 0 16 16" aria-hidden="true">
+            <path d="m5 6.5 3 3 3-3" />
+          </svg>
+        </summary>
+        {docWords && (
+          <div class="docwords">
+            <p class="seclabel">The demo doc’s words, step {s.n}</p>
+            <p class="mono">
+              {docWords.map((line, i) => (
+                <>
+                  {i > 0 && <br />}
+                  {line}
+                </>
+              ))}
+            </p>
+          </div>
+        )}
+        {s.hood?.map((note) => (
+          <div class="note">
+            <p>{note.text}</p>
+            <p class="src">
+              <span>{note.source}</span>
+              {note.link && <a href={note.link.href}>{note.link.label} →</a>}
+            </p>
+          </div>
+        ))}
+      </details>
+    )
+  }
+</article>

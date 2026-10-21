@@ -1,0 +1,44 @@
+---
+import Base from '../layouts/Base.astro';
+import FlowShell from '../components/flow/FlowShell.astro';
+import ChapterNav from '../components/ChapterNav.astro';
+import Takeaways from '../components/Takeaways.astro';
+import DemoNote from '../components/DemoNote.astro';
+import { paymentFlow } from '../data/flows/payment';
+import { outcomes } from '../data/sample';
+
+const variants = outcomes.map((o) => ({
+  id: o.id,
+  label: o.label,
+  hint: o.hint,
+  tone: (o.id === 'exact' ? 'ok' : 'fail') as 'ok' | 'fail',
+  flow: paymentFlow(o.id),
+  amount: o.amount,
+}));
+---
+
+<Base title="Bill payment" description="Pay it. The bill payment flow, step by step: choose what the bank sends and watch RSOP approve or refuse it." app>
+  <FlowShell variants={variants} param="outcome" pickLabel="What does Sara’s bank send?" docNumbered>
+    <Fragment slot="intro">
+      <p class="eyebrow">Chapter 03 · 4 min</p>
+      <h1 class="headline">Pay it<span class="pd">.</span></h1>
+      <p class="lede">
+        Sara taps Pay. Her bank sends the payment to <b>Raast</b>, Raast asks <b>RSOP</b>, and RSOP checks it against the
+        inquiry before saying <b>yes</b> or <b>no</b>. Only when Raast confirms does anyone tell the biller. Choose what
+        the bank sends, then step through.
+      </p>
+      <p class="hint-line"><b>Next</b> or <b>→</b> to step through · <b>Tap</b> any step to jump · <b>Swap order</b> to see that the two notifications are independent</p>
+      <DemoNote />
+    </Fragment>
+    <Fragment slot="after">
+      <Takeaways
+        items={[
+          'RSOP checks the inquiry ID and the exact amount before Raast finishes the payment, and answers [[AUTH]] or [[NAUT]].',
+          'The bill is marked paid only after Raast’s [[ACSP]]. A refused payment never reaches the biller.',
+          'Raast tells the bank and RSOP separately. Either can hear first, so neither waits for the other.',
+        ]}
+      />
+      <ChapterNav href="/payment" />
+    </Fragment>
+  </FlowShell>
+</Base>

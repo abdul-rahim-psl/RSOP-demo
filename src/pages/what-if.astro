@@ -1,0 +1,43 @@
+---
+import Base from '../layouts/Base.astro';
+import FlowShell from '../components/flow/FlowShell.astro';
+import ChapterNav from '../components/ChapterNav.astro';
+import Takeaways from '../components/Takeaways.astro';
+import DemoNote from '../components/DemoNote.astro';
+import { scenarios } from '../data/flows/what-if';
+
+const variants = scenarios.map((s) => ({
+  id: s.id,
+  label: s.chip,
+  flow: s.flow,
+  lesson: s.lesson,
+  basis: s.basis,
+  tone: 'info' as const,
+}));
+---
+
+<Base title="What if…" description="Repeated messages, two payments racing for one bill, a biller that does not answer: how the demo stays safe when things go wrong." app>
+  <FlowShell variants={variants} param="scenario" pickLabel="Pick a situation">
+    <Fragment slot="intro">
+      <p class="eyebrow">Chapter 04 · 3 min</p>
+      <h1 class="headline">What if<span class="pd">…?</span></h1>
+      <p class="lede">
+        Networks retry, people double-tap, systems time out. Pick a situation and watch how RSOP keeps the one rule that
+        matters: <b>a bill is paid once, and a payment is never undone by a late notification.</b>
+      </p>
+      <p class="hint-line"><b>Pick</b> a situation · <b>Next</b> or <b>→</b> to step through · each card says where the behaviour comes from</p>
+      <DemoNote />
+    </Fragment>
+    <Fragment slot="after">
+      <Takeaways
+        title="The rules behind every situation"
+        items={[
+          'Repeated messages are harmless: RSOP handles them [[idempotently|idempotent]], matching each one by its [[payment reference]].',
+          'One bill, one payment: reserving an inquiry is [[atomic]], so two payments cannot both take it.',
+          'The payment result and the bill notification are tracked separately: a notification can be retried, but a payment is never reversed by it.',
+        ]}
+      />
+      <ChapterNav href="/what-if" />
+    </Fragment>
+  </FlowShell>
+</Base>

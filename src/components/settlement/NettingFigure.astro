@@ -1,0 +1,537 @@
+---
+// Illustrative figures only: four payments in one cycle, three participants.
+const parties = [
+  { id: 'demo', name: 'Demo Bank', c: 'bank', net: -5150, before: 50000 },
+  { id: 'b', name: 'Bank B', c: 'other', net: -2200, before: 30000 },
+  { id: 'gov', name: 'Government’s receiving side', c: 'biller', net: 7350, before: 80000 },
+];
+const payments = [
+  { from: 'Demo Bank', to: 'Government’s receiving side', amount: 4350, note: 'Sara’s bill' },
+  { from: 'Bank B', to: 'Demo Bank', amount: 1200 },
+  { from: 'Demo Bank', to: 'Bank B', amount: 2000 },
+  { from: 'Bank B', to: 'Government’s receiving side', amount: 3000 },
+];
+const max = 7350;
+const fmt = (n: number) => n.toLocaleString('en-US');
+const stages = [
+  { n: 1, label: 'During the day', text: 'Four payments clear in Raast, one by one, in seconds. No bank account at the State Bank has moved yet: Raast only updates each bank’s position.' },
+  { n: 2, label: 'Cut-off', text: 'Raast closes the batch. Four payments worth 10,550 become three net amounts: Demo Bank owes 5,150, Bank B owes 2,200, the government’s receiving side is owed 7,350. Together they add up to zero.' },
+  { n: 3, label: 'PRISM+ settles', text: 'PRISM+ settles all three net amounts together, from the banks’ Raast reserves: all of them or none of them.' },
+  { n: 4, label: 'Final', text: 'The money has moved between accounts at the State Bank. It is final: it cannot be reversed. The positions start again from zero.' },
+];
+---
+
+<figure class="net glass" data-net data-stage="1">
+  <ol class="steps" aria-label="Settlement stages">
+    {
+      stages.map((s) => (
+        <li>
+          <button type="button" data-to={s.n} aria-current={s.n === 1 ? 'step' : undefined}>
+            <span class="mono">{s.n}</span>
+            {s.label}
+          </button>
+        </li>
+      ))
+    }
+  </ol>
+
+  <div class="panel">
+    <div class="layer raast">
+      <p class="seclabel"><span class="sw" style="--c: var(--c-raast)"></span>Raast · clearing</p>
+      <ul class="payments">
+        {
+          payments.map((p, i) => (
+            <li style={`--i: ${i}`}>
+              <span class="pf">{p.from}</span>
+              <svg viewBox="0 0 16 16" aria-hidden="true">
+                <path d="M2 8h11M9.5 4.5 13 8l-3.5 3.5" />
+              </svg>
+              <span class="pt">{p.to}</span>
+              <span class="pa mono">{fmt(p.amount)}</span>
+              {p.note && <span class="tag">{p.note}</span>}
+            </li>
+          ))
+        }
+      </ul>
+      <div class="positions">
+        {
+          parties.map((p) => (
+            <div class="pos" style={`--c: var(--c-${p.c}); --w: ${(Math.abs(p.net) / max) * 50}%`} data-sign={p.net < 0 ? 'neg' : 'pos'}>
+              <span class="pname">{p.name}</span>
+              <span class="ptrack">
+                <span class="zero" />
+                <span class="pbar" />
+              </span>
+              <span class="pval mono">{p.net < 0 ? `owes ${fmt(-p.net)}` : `is owed ${fmt(p.net)}`}</span>
+            </div>
+          ))
+        }
+      </div>
+    </div>
+
+    <div class="cut">
+      <span>Cut-off</span>
+    </div>
+
+    <div class="layer prism">
+      <p class="seclabel"><span class="sw" style="--c: var(--c-prism)"></span>PRISM+ · accounts at the State Bank</p>
+      <div class="accts">
+        {
+          parties.map((p) => (
+            <div class="acct" style={`--c: var(--c-${p.c})`}>
+              <span class="aname">{p.name}</span>
+              <span class="abal mono">
+                <span class="before">{fmt(p.before)}</span>
+                <span class="after">{fmt(p.before + p.net)}</span>
+              </span>
+              <span class="adelta mono" data-sign={p.net < 0 ? 'neg' : 'pos'}>
+                {p.net < 0 ? '−' : '+'}
+                {fmt(Math.abs(p.net))}
+              </span>
+            </div>
+          ))
+        }
+      </div>
+      <p class="final">
+        <svg viewBox="0 0 16 16" aria-hidden="true"><path d="m4 8.4 2.6 2.5L12 5.3" /></svg>
+        Settled in central-bank money · final
+      </p>
+    </div>
+  </div>
+
+  <div class="caption" aria-live="polite">
+    {
+      stages.map((s) => (
+        <p data-for={s.n}>
+          <b>{s.label}.</b> {s.text}
+        </p>
+      ))
+    }
+  </div>
+
+  <div class="nav">
+    <button type="button" class="btn" data-dir="-1">← Back</button>
+    <span class="illus">Illustrative numbers, in PKR</span>
+    <button type="button" class="btn primary" data-dir="1">Next →</button>
+  </div>
+</figure>
+
+<script>
+  document.querySelectorAll<HTMLElement>('[data-net]').forEach((fig) => {
+    const set = (n: number) => {
+      const stage = Math.min(4, Math.max(1, n));
+      fig.dataset.stage = String(stage);
+      fig.querySelectorAll<HTMLButtonElement>('[data-to]').forEach((b) => {
+        if (Number(b.dataset.to) === stage) b.setAttribute('aria-current', 'step');
+        else b.removeAttribute('aria-current');
+      });
+      fig.querySelector<HTMLButtonElement>('[data-dir="-1"]')!.disabled = stage === 1;
+      fig.querySelector<HTMLButtonElement>('[data-dir="1"]')!.disabled = stage === 4;
+    };
+    fig.addEventListener('click', (e) => {
+      const t = (e.target as HTMLElement).closest<HTMLElement>('[data-to], [data-dir]');
+      if (!t) return;
+      const now = Number(fig.dataset.stage);
+      set(t.dataset.to ? Number(t.dataset.to) : now + Number(t.dataset.dir));
+    });
+    fig.classList.add('js');
+    set(1);
+  });
+</script>
+
+<style>
+  .net {
+    display: grid;
+    gap: 16px;
+    padding: 16px 18px 18px;
+  }
+
+  .steps {
+    display: grid;
+    grid-template-columns: repeat(4, 1fr);
+    gap: 6px;
+    padding: 0;
+    list-style: none;
+  }
+
+  .steps button {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    width: 100%;
+    padding: 8px 10px;
+    border: 1px solid var(--stroke);
+    border-radius: 10px;
+    background: transparent;
+    color: var(--mut);
+    font-size: 0.8rem;
+    font-weight: 800;
+    text-align: left;
+    cursor: pointer;
+  }
+
+  .steps button .mono {
+    font-size: 0.7rem;
+    color: var(--faint);
+  }
+
+  .steps button[aria-current='step'] {
+    border-color: var(--accent);
+    color: var(--ink);
+    background: color-mix(in srgb, var(--accent) 8%, transparent);
+  }
+
+  .panel {
+    display: grid;
+    gap: 10px;
+  }
+
+  .layer {
+    display: grid;
+    gap: 12px;
+    padding: 14px;
+    border: 1px solid var(--stroke);
+    border-radius: 14px;
+    transition:
+      opacity 0.4s,
+      border-color 0.4s;
+  }
+
+  .raast {
+    background: color-mix(in srgb, var(--c-raast) 5%, transparent);
+  }
+
+  .prism {
+    background: color-mix(in srgb, var(--c-prism) 6%, transparent);
+  }
+
+  .payments {
+    display: grid;
+    gap: 5px;
+    padding: 0;
+    list-style: none;
+  }
+
+  .payments li {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: 4px 8px;
+    padding: 6px 10px;
+    border: 1px solid var(--stroke);
+    border-radius: 9px;
+    font-size: 0.8rem;
+    font-weight: 700;
+    transition: opacity 0.4s;
+  }
+
+  .js[data-stage='1'] .payments li {
+    animation: drop 0.45s ease-out backwards;
+    animation-delay: calc(var(--i) * 0.35s);
+  }
+
+  @keyframes drop {
+    from {
+      opacity: 0;
+      transform: translateY(-6px);
+    }
+  }
+
+  .payments svg {
+    width: 14px;
+    height: 14px;
+    fill: none;
+    stroke: var(--mut);
+    stroke-width: 1.6;
+    stroke-linecap: round;
+    stroke-linejoin: round;
+  }
+
+  .pa {
+    margin-left: auto;
+  }
+
+  .tag {
+    padding: 1px 7px;
+    border-radius: 999px;
+    background: color-mix(in srgb, var(--c-customer) 22%, transparent);
+    color: var(--ink);
+    font-size: 0.66rem;
+    font-weight: 800;
+  }
+
+  .positions {
+    display: grid;
+    gap: 8px;
+  }
+
+  .pos {
+    display: grid;
+    grid-template-columns: minmax(0, 9.5em) minmax(0, 1fr) 8.5em;
+    align-items: center;
+    gap: 10px;
+    font-size: 0.78rem;
+  }
+
+  .pname {
+    font-weight: 800;
+    line-height: 1.25;
+  }
+
+  .ptrack {
+    position: relative;
+    height: 12px;
+  }
+
+  .zero {
+    position: absolute;
+    left: 50%;
+    top: -4px;
+    bottom: -4px;
+    border-left: 1px solid var(--stroke-strong);
+  }
+
+  .pbar {
+    position: absolute;
+    top: 0;
+    bottom: 0;
+    width: var(--w);
+    background: var(--c);
+    transition: width 0.6s ease 1.2s;
+  }
+
+  .pos[data-sign='neg'] .pbar {
+    right: 50%;
+    border-radius: 4px 0 0 4px;
+  }
+
+  .pos[data-sign='pos'] .pbar {
+    left: 50%;
+    border-radius: 0 4px 4px 0;
+  }
+
+  .js[data-stage='1'] .pbar {
+    animation: grow 0.7s ease-out 1.4s backwards;
+  }
+
+  @keyframes grow {
+    from {
+      width: 0;
+    }
+  }
+
+  .pval {
+    color: var(--mut);
+    text-align: right;
+  }
+
+  .cut {
+    position: relative;
+    display: grid;
+    place-items: center;
+    height: 22px;
+  }
+
+  .cut::before {
+    content: '';
+    position: absolute;
+    left: 0;
+    right: 0;
+    top: 50%;
+    border-top: 1.4px dashed var(--accent);
+    opacity: 0.35;
+    transition: opacity 0.3s;
+  }
+
+  .cut span {
+    position: relative;
+    padding: 2px 12px;
+    border: 1px solid var(--accent);
+    border-radius: 999px;
+    background: var(--panel-solid);
+    font-size: 0.66rem;
+    font-weight: 900;
+    letter-spacing: 0.14em;
+    text-transform: uppercase;
+    opacity: 0.45;
+    transition: opacity 0.3s;
+  }
+
+  .accts {
+    display: grid;
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+    gap: 8px;
+  }
+
+  .acct {
+    display: grid;
+    gap: 3px;
+    padding: 10px 12px;
+    border: 1px solid color-mix(in srgb, var(--c) 40%, transparent);
+    border-radius: 11px;
+  }
+
+  .aname {
+    font-size: 0.74rem;
+    font-weight: 800;
+    color: var(--mut);
+    line-height: 1.25;
+  }
+
+  .abal {
+    font-size: 1rem;
+    font-weight: 700;
+  }
+
+  .after,
+  .adelta {
+    display: none;
+  }
+
+  .adelta {
+    font-size: 0.76rem;
+  }
+
+  .adelta[data-sign='neg'] {
+    color: var(--fail);
+  }
+
+  .adelta[data-sign='pos'] {
+    color: var(--ok);
+  }
+
+  .final {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    font-size: 0.84rem;
+    font-weight: 900;
+    opacity: 0;
+    transition: opacity 0.4s;
+  }
+
+  .final svg {
+    width: 20px;
+    height: 20px;
+    padding: 2px;
+    border-radius: 50%;
+    background: var(--ok);
+    fill: none;
+    stroke: var(--bg);
+    stroke-width: 2.2;
+    stroke-linecap: round;
+    stroke-linejoin: round;
+  }
+
+  /* Stage 2 onwards: the batch is closed. */
+  .net:not([data-stage='1']) .payments li {
+    opacity: 0.35;
+  }
+
+  [data-stage='2'] .cut span,
+  [data-stage='2'] .cut::before {
+    opacity: 1;
+  }
+
+  [data-stage='2'] .positions {
+    padding: 8px;
+    margin: -8px;
+    border-radius: 12px;
+    box-shadow: 0 0 0 1.5px var(--accent);
+  }
+
+  .js[data-stage='1'] .prism,
+  .js[data-stage='2'] .prism {
+    opacity: 0.45;
+  }
+
+  [data-stage='3'] .prism,
+  [data-stage='4'] .prism {
+    border-color: var(--c-prism);
+  }
+
+  [data-stage='3'] .before,
+  [data-stage='4'] .before {
+    display: none;
+  }
+
+  [data-stage='3'] .after,
+  [data-stage='4'] .after,
+  [data-stage='3'] .adelta,
+  [data-stage='4'] .adelta {
+    display: block;
+  }
+
+  [data-stage='4'] .final {
+    opacity: 1;
+  }
+
+  [data-stage='4'] .pbar {
+    width: 0;
+    transition-delay: 0s;
+  }
+
+  .caption p {
+    display: none;
+    font-size: 0.92rem;
+    line-height: 1.6;
+    color: var(--ink-2);
+  }
+
+  .net:not(.js) .caption p,
+  [data-stage='1'] .caption [data-for='1'],
+  [data-stage='2'] .caption [data-for='2'],
+  [data-stage='3'] .caption [data-for='3'],
+  [data-stage='4'] .caption [data-for='4'] {
+    display: block;
+  }
+
+  .caption b {
+    color: var(--ink);
+  }
+
+  .nav {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 10px;
+  }
+
+  .nav .btn {
+    white-space: nowrap;
+  }
+
+  .nav .btn:disabled {
+    opacity: 0.35;
+    cursor: default;
+  }
+
+  .illus {
+    font-size: 0.74rem;
+    color: var(--faint);
+    text-align: center;
+  }
+
+  .net:not(.js) .nav {
+    display: none;
+  }
+
+  @media (max-width: 560px) {
+    .steps {
+      grid-template-columns: 1fr 1fr;
+    }
+
+    .pos {
+      grid-template-columns: 1fr;
+      gap: 4px;
+    }
+
+    .pval {
+      text-align: left;
+    }
+
+    .accts {
+      grid-template-columns: 1fr;
+    }
+  }
+</style>

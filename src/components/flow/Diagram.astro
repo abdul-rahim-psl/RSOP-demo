@@ -1,0 +1,40 @@
+---
+import type { Flow } from '../../lib/flow';
+import { actors } from '../../data/actors';
+import ActorIcon from '../ActorIcon.astro';
+import Rows from './Rows.astro';
+
+interface Props {
+  flow: Flow;
+}
+
+const { flow } = Astro.props;
+const n = flow.lanes.length;
+const lane = Object.fromEntries(flow.lanes.map((l, i) => [l.actor, i]));
+const names = Object.fromEntries(flow.lanes.map((l) => [l.actor, actors[l.actor].name]));
+---
+
+<div class="diagram" style={`--n: ${n}`}>
+  <div class="lanes-head">
+    <span class="gut" aria-hidden="true"></span>
+    <div class="heads">
+      {
+        flow.lanes.map((l) => (
+          <div class="head" data-actor={l.actor} style={`--c: var(--c-${l.actor})`}>
+            <span class="node">
+              <ActorIcon actor={l.actor} size={17} />
+            </span>
+            <span class="nm">{actors[l.actor].name}</span>
+            <span class="role">{l.role ?? actors[l.actor].role}</span>
+          </div>
+        ))
+      }
+    </div>
+  </div>
+  <div class="body">
+    <div class="lifelines" aria-hidden="true">
+      {flow.lanes.map((l) => <span style={`--c: var(--c-${l.actor})`} />)}
+    </div>
+    <Rows blocks={flow.blocks} lane={lane} names={names} n={n} branch={flow.branch} />
+  </div>
+</div>

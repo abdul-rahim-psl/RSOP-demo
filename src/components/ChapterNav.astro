@@ -1,0 +1,89 @@
+---
+import { neighbours } from '../data/chapters';
+
+interface Props {
+  href: string;
+}
+
+const { prev, next } = neighbours(Astro.props.href);
+---
+
+<nav class="chapter-nav" aria-label="Chapter navigation">
+  {
+    prev ? (
+      <a class="glass cn-prev" href={prev.href}>
+        <span class="seclabel">← Chapter {prev.n}</span>
+        <span class="t">{prev.title}</span>
+      </a>
+    ) : (
+      <a class="glass cn-prev" href="/">
+        <span class="seclabel">← Start</span>
+        <span class="t">Start here</span>
+      </a>
+    )
+  }
+  {
+    next ? (
+      <a class="glass cn-next" href={next.href}>
+        <span class="seclabel">Chapter {next.n} →</span>
+        <span class="t">{next.title}</span>
+      </a>
+    ) : (
+      <a class="glass cn-next" href="/glossary">
+        <span class="seclabel">Reference →</span>
+        <span class="t">Glossary</span>
+      </a>
+    )
+  }
+</nav>
+
+<style>
+  .chapter-nav {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 12px;
+  }
+
+  a {
+    display: grid;
+    gap: 4px;
+    padding: 16px 18px;
+    text-decoration: none;
+    transition:
+      border-color 0.15s,
+      background 0.15s;
+  }
+
+  a:hover {
+    border-color: var(--stroke-strong);
+    background: var(--hover);
+  }
+
+  .cn-next {
+    text-align: right;
+  }
+
+  .cn-next .seclabel {
+    justify-content: flex-end;
+  }
+
+  .t {
+    font-family: var(--font-serif);
+    font-size: 1.5rem;
+    line-height: 1.1;
+  }
+
+  @media (max-width: 520px) {
+    .chapter-nav {
+      grid-template-columns: 1fr;
+    }
+
+    .cn-next {
+      text-align: left;
+    }
+
+    .cn-next .seclabel {
+      justify-content: flex-start;
+    }
+  }
+</style>

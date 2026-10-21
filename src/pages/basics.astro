@@ -1,0 +1,146 @@
+---
+import Base from '../layouts/Base.astro';
+import Lesson from '../components/Lesson.astro';
+import PageToc from '../components/PageToc.astro';
+import FactCard from '../components/FactCard.astro';
+import ChapterNav from '../components/ChapterNav.astro';
+import HubFigure from '../components/basics/HubFigure.astro';
+import ScaleBars from '../components/basics/ScaleBars.astro';
+import TwoLayers from '../components/basics/TwoLayers.astro';
+import MessageForms from '../components/basics/MessageForms.astro';
+import SeatFigure from '../components/basics/SeatFigure.astro';
+import { rich } from '../lib/rich';
+
+const toc = [
+  { id: 'hub', label: 'Why banks need a hub' },
+  { id: 'raast', label: 'Meet Raast' },
+  { id: 'rtgs', label: 'Meet the RTGS' },
+  { id: 'layers', label: 'Two layers, two clocks' },
+  { id: 'messages', label: 'Messages are forms' },
+  { id: 'seat', label: 'Where RSOP fits' },
+];
+---
+
+<Base title="The basics" description="Raast and the RTGS, clearing vs settlement, and the messages you will meet: the background for the bill payment flows.">
+  <main class="wrap page">
+    <header class="page-head">
+      <p class="eyebrow">Chapter 01 · 4 min</p>
+      <h1 class="headline">The basics<span class="pd">.</span></h1>
+      <p class="lede">
+        Six ideas you need before the flows: why banks share a hub, what <b>Raast</b> and the <b>RTGS</b> are, why
+        paying and settling happen at different times, and how the parties talk.
+      </p>
+    </header>
+
+    <div class="layout">
+      <aside class="side"><PageToc items={toc} /></aside>
+      <div class="content">
+        <Lesson id="hub" n={1} label="Why banks need a hub" title="One connection each">
+          <p set:html={rich('Sara banks with Demo Bank. The city banks somewhere else. For her money to reach the city, the two banks need a way to talk.')} />
+          <p set:html={rich('If every bank wired itself to every other bank, the links would multiply as banks joined. A hub fixes that: each bank connects once, to the hub, and can then reach all the others. In Pakistan, the hub for instant payments is [[Raast]].')} />
+          <HubFigure slot="figure" />
+        </Lesson>
+
+        <Lesson id="raast" n={2} label="Meet Raast" title="Instant, all day, every day">
+          <p set:html={rich('Raast is Pakistan’s national instant payment system. It is owned by the State Bank of Pakistan, [[SBP]], and run by its subsidiary [[RPP]].')} />
+          <p set:html={rich('It started with bulk payments in January 2021, added person-to-person payments in 2022 and merchant payments at the end of 2023. It never closes: each payment clears in seconds, 24x7.')} />
+          <p>In this guide, Raast is the middle of every flow: the bank talks to Raast, and Raast talks to RSOP.</p>
+          <FactCard
+            slot="figure"
+            name="Raast"
+            role="Instant payment system"
+            icon="raast"
+            color="raast"
+            big="742M"
+            unit="payments in Jan–Mar 2026"
+            sub="worth PKR 23.3 trillion"
+            facts={[
+              ['Open', '24x7, every day of the year'],
+              ['Owner', 'State Bank of Pakistan, run by RPP'],
+              ['Live since', 'January 2021'],
+              ['Carries', 'Person-to-person, merchant and bulk payments'],
+            ]}
+            source="SBP, via the Raast learning notes"
+          />
+        </Lesson>
+
+        <Lesson id="rtgs" n={3} label="Meet the RTGS" title="Where the banks’ own money lives">
+          <p set:html={rich('Banks keep their own money in accounts at the State Bank. Moving money between those accounts is the real thing: once it happens, it is final.')} />
+          <p set:html={rich('The system that does it is [[PRISM+]], the State Bank’s [[RTGS]]: real-time gross settlement. It settles big payments one at a time, on business days. PRISM+ replaced PRISM on 16 June 2025.')} />
+          <Fragment slot="figure">
+            <FactCard
+              name="PRISM+"
+              role="The State Bank’s RTGS"
+              icon="prism"
+              color="prism"
+              big="PKR 389.8T"
+              unit="settled in Jan–Mar 2026"
+              sub="in 1.46 million payments"
+              facts={[
+                ['Open', 'Business days'],
+                ['Settles', 'One payment at a time, with final effect'],
+                ['Live since', '16 June 2025 (PRISM, 2008–2025)'],
+                ['Carries', 'Large interbank payments, government securities, and the net totals of Raast and other systems'],
+              ]}
+              source="SBP, via the Raast learning notes"
+            />
+            <ScaleBars />
+          </Fragment>
+        </Lesson>
+
+        <Lesson id="layers" n={4} label="Two layers, two clocks" title="Clear now, settle later">
+          <p set:html={rich('This is the trick that makes instant payments safe. When Sara pays, Raast [[clears|clearing]] the payment in seconds: it passes the instruction along and moves each bank’s running total, its [[position]].')} />
+          <p set:html={rich('The banks’ real money moves later, at a [[cut-off]], when one net amount per bank [[settles|settlement]] in PRISM+. A bank can never send more through Raast than it has set aside at the State Bank, its [[reserve]], so that later settlement cannot fail.')} />
+          <TwoLayers slot="figure" />
+        </Lesson>
+
+        <Lesson id="messages" n={5} label="Messages are forms" title="Every message is a standard form">
+          <p set:html={rich('The parties do not chat. They exchange standard electronic forms defined by [[ISO 20022]].')} />
+          <p set:html={rich('You will meet two of them. A [[pacs.008]] says “please pay this amount”. A [[pacs.002]] answers with a status code, and four codes are enough for this whole guide.')} />
+          <MessageForms slot="figure" />
+        </Lesson>
+
+        <Lesson id="seat" n={6} label="Where RSOP fits" title="RSOP takes the payee’s seat">
+          <p set:html={rich('In an ordinary Raast payment, the payee’s bank receives the payment and answers yes or no.')} />
+          <p set:html={rich('A government bill needs one more check: does this payment match a real bill, for the right amount? In this demo, [[RSOP]] takes the payee’s seat. It looks the bill up before anyone pays, remembers the answer, and checks every payment against it.')} />
+          <p><a class="btn primary" href="/inquiry">See the inquiry →</a></p>
+          <SeatFigure slot="figure" />
+        </Lesson>
+
+        <ChapterNav href="/basics" />
+      </div>
+    </div>
+  </main>
+</Base>
+
+<style>
+  .page {
+    padding-top: 44px;
+  }
+
+  .page-head {
+    display: grid;
+    gap: 14px;
+    padding-bottom: 40px;
+  }
+
+  .layout {
+    display: grid;
+    grid-template-columns: 200px minmax(0, 1fr);
+    gap: 48px;
+  }
+
+  .side {
+    padding-top: 56px;
+  }
+
+  @media (max-width: 1100px) {
+    .layout {
+      grid-template-columns: 1fr;
+    }
+
+    .side {
+      display: none;
+    }
+  }
+</style>
